@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ iki1uc · runtime · index</title>
+<style>
+  :root{--bg:#04070e;--bg2:#0a101e;--bg3:#101828;--fg:#c8d8e8;--dim:#5a7288;--dim2:#2a3644;
+    --green:#7ce0a8;--cyan:#5fc8ff;--gold:#ffcc44;--violet:#b388ff;--red:#ff5a7a;
+    --line:rgba(140,180,220,0.09)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;color:var(--fg);font-family:'Consolas',monospace;font-size:12px;height:100vh;overflow:hidden}
+  #desk{width:100vw;height:100vh;background:var(--bg);display:flex;flex-direction:column}
+  #topbar{height:34px;background:linear-gradient(180deg,#0a101e,#04070e);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;
+    padding:0 14px;font-size:11px;letter-spacing:1px;gap:12px;flex-shrink:0}
+  #topbar .logo{color:var(--gold);font-weight:bold;letter-spacing:3px;text-shadow:0 0 10px var(--gold)}
+  #topbar .logo b{color:var(--green)}
+  #topbar .sep{width:1px;height:16px;background:var(--line)}
+  #topbar .path{color:var(--dim);font-size:10px}
+  #topbar .stat{color:var(--dim);font-size:10px;display:flex;gap:12px;margin-left:auto}
+  #topbar .stat b.g{color:var(--green)}
+  #topbar .stat b.c{color:var(--cyan)}
+  #topbar .stat b.a{color:var(--gold)}
+  #topbar .stat b.r{color:var(--red)}
+  #main{flex:1;display:grid;grid-template-columns:1fr 280px;overflow:hidden;min-height:0}
+  #stage{background:#000;display:flex;flex-direction:column;position:relative}
+  #stage iframe{flex:1;border:none;background:#000;width:100%}
+  #side{background:var(--bg2);border-left:1px solid var(--line);overflow-y:auto;padding:10px;
+    display:flex;flex-direction:column;gap:10px}
+  .panel{background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+  .panel h3{font-size:10px;letter-spacing:1.8px;color:var(--green);text-transform:uppercase;
+    margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;font-weight:normal}
+  .layer{display:flex;justify-content:space-between;align-items:center;
+    padding:6px 8px;background:var(--bg3);border:1px solid var(--line);border-radius:4px;
+    margin-bottom:4px;cursor:pointer;transition:.15s;font-size:10.5px}
+  .layer:hover{border-color:var(--gold);background:rgba(255,204,68,0.06)}
+  .layer.active{border-color:var(--green);background:rgba(124,224,168,0.1);color:var(--green)}
+  .layer.missing{opacity:0.5;border-color:var(--red);color:var(--red)}
+  .layer .name{font-weight:bold}
+  .layer .status{font-size:9px;color:var(--dim)}
+  .layer.active .status{color:var(--green)}
+  .layer.missing .status{color:var(--red)}
+  .stat-row{display:flex;justify-content:space-between;padding:4px 0;
+    border-bottom:1px dashed var(--line);font-size:10.5px}
+  .stat-row:last-child{border-bottom:none}
+  .stat-row .k{color:var(--dim)}
+  .stat-row .v{color:var(--fg);font-weight:bold}
+  .stat-row .v.ok{color:var(--green)}
+  .stat-row .v.cy{color:var(--cyan)}
+  .stat-row .v.go{color:var(--gold)}
+  .stat-row .v.rd{color:var(--red)}
+  .mbtn{background:var(--bg3);color:var(--fg);border:1px solid var(--line);
+    padding:6px 10px;border-radius:3px;font-family:inherit;font-size:10px;letter-spacing:1px;
+    cursor:pointer;transition:.15s;text-transform:uppercase;width:100%;margin-bottom:4px}
+  .mbtn:hover{border-color:var(--green);background:rgba(124,224,168,0.1);color:var(--green)}
+  .mbtn.g{border-color:rgba(124,224,168,0.4);color:var(--green)}
+  .mbtn.a{border-color:rgba(255,204,68,0.4);color:var(--gold)}
+  .mbtn.c{border-color:rgba(95,200,255,0.4);color:var(--cyan)}
+  #cli{height:120px;background:#02040a;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;flex-shrink:0}
+  #cliHdr{height:20px;background:var(--bg2);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;padding:0 12px;font-size:9px;letter-spacing:1.5px;
+    color:var(--dim);text-transform:uppercase}
+  #cliHdr .tag{margin-left:auto;color:var(--green);font-size:9px}
+  #log{flex:1;padding:6px 12px;overflow-y:auto;font-size:10px;line-height:1.55;color:var(--dim)}
+  #log::-webkit-scrollbar{width:5px}#log::-webkit-scrollbar-thumb{background:var(--line)}
+  #log .ln{white-space:pre-wrap;word-break:break-all}
+  #log .ts{color:var(--dim2);margin-right:6px}
+  #log .ok{color:var(--green)}
+  #log .warn{color:var(--gold)}
+  #log .err{color:var(--red)}
+  #log .info{color:var(--cyan)}
+  #log .gold{color:var(--gold)}
+  #cliInput{height:24px;background:var(--bg3);border-top:1px solid var(--line);
+    display:flex;align-items:center;padding:0 12px;font-size:11px}
+  #cliInput .prompt{color:var(--gold);margin-right:6px;font-weight:bold}
+  #cliInput input{flex:1;background:transparent;border:none;color:var(--fg);
+    font-family:inherit;font-size:11px;outline:none}
+  #cliInput input::placeholder{color:var(--dim2)}
+</style>
+</head>
+<body>
+<div id="desk">
+  <div id="topbar">
+    <span class="logo">◈ iki1uc<b>::runtime</b></span>
+    <span class="sep"></span>
+    <span class="path">/ > index.html · runtime shell</span>
+    <div class="stat">
+      <span>LAYERS <b class="c" id="tLayers">0/4</b></span>
+      <span>ACTIVE <b class="g" id="tActive">—</b></span>
+      <span>RUNS <b class="a" id="tRuns">0</b></span>
+      <span>MISSING <b class="r" id="tMissing">0</b></span>
+    </div>
+  </div>
+  <div id="main">
+    <div id="stage">
+      <iframe id="frame" src="en.html" title="active layer"></iframe>
+    </div>
+    <div id="side">
+      <div class="panel">
+        <h3>◈ LAYERS <span style="color:var(--cyan)">active</span></h3>
+        <div id="layers"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ RUNTIME <span style="color:var(--green)">live</span></h3>
+        <div id="runtime"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ CONTROLS</h3>
+        <button class="mbtn g" id="btnCheck">⟳ check layers</button>
+        <button class="mbtn c" id="btnRun">▶ run cluster</button>
+        <button class="mbtn a" id="btnKodex">◆ open kodex</button>
+      </div>
+    </div>
+  </div>
+  <div id="cli">
+    <div id="cliHdr">
+      <span style="color:var(--gold)">iki1uc · runtime · index.html</span>
+      <span class="tag">◈ layer switch · workaround · never stops</span>
+    </div>
+    <div id="log"></div>
+    <div id="cliInput">
+      <span class="prompt">rt&gt;</span>
+      <input id="cmdInput" placeholder="command: de · tr · en · kodex · check · run · status · help" autocomplete="off">
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+const R = {
+  layers: ['de.html','tr.html','en.html','kodex.html'],
+  active: 'en.html',
+  status: {},       // file -> ok|missing|unknown
+  runs: 0,
+  frame: document.getElementById('frame'),
+};
+const logEl = document.getElementById('log');
+function log(msg, cls='') {
+  const t = new Date().toLocaleTimeString('en-GB');
+  const d = document.createElement('div');
+  d.className = 'ln';
+  d.innerHTML = `<span class="ts">[${t}]</span><span class="${cls}">${msg}</span>`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  while (logEl.children.length > 100) logEl.removeChild(logEl.firstChild);
+}
+async function checkLayer(file) {
+  try {
+    const res = await fetch(file, { method: 'HEAD', cache: 'no-store' });
+    R.status[file] = res.ok ? 'ok' : 'missing';
+    return res.ok;
+  } catch (e) {
+    R.status[file] = 'missing';
+    return false;
+  }
+}
+async function checkAll() {
+  log('⟳ checking layers…','info');
+  await Promise.all(R.layers.map(checkLayer));
+  const ok = R.layers.filter(f => R.status[f] === 'ok').length;
+  const missing = R.layers.filter(f => R.status[f] === 'missing').length;
+  log(`✔ layers: ${ok}/${R.layers.length} ok · ${missing} missing`, missing ? 'warn' : 'ok');
+  renderLayers(); renderRuntime();
+}
+function switchTo(file) {
+  if (!R.layers.includes(file)) { log(`✗ unknown layer: ${file}`,'err'); return; }
+  const st = R.status[file];
+  if (st === 'missing') {
+    log(`✗ ${file} missing · trying workaround…`,'warn');
+    const fallback = R.layers.find(f => f !== file && R.status[f] === 'ok');
+    if (fallback) { log(`↪ fallback → ${fallback}`,'warn'); return switchTo(fallback); }
+    log('✗ no fallback available','err');
+    return;
+  }
+  R.active = file;
+  R.frame.src = file;
+  log(`▸ layer active: ${file}`,'gold');
+  renderLayers(); renderRuntime();
+}
+function renderLayers() {
+  const el = document.getElementById('layers');
+  el.innerHTML = '';
+  R.layers.forEach(f => {
+    const st = R.status[f] || 'unknown';
+    const d = document.createElement('div');
+    d.className = 'layer' + (f === R.active ? ' active' : (st === 'missing' ? ' missing' : ''));
+    d.innerHTML = `<span class="name">${f}</span><span class="status">${f === R.active ? 'ACTIVE' : st.toUpperCase()}</span>`;
+    d.addEventListener('click', () => switchTo(f));
+    el.appendChild(d);
+  });
+  const ok = R.layers.filter(f => R.status[f] === 'ok').length;
+  document.getElementById('tLayers').textContent = `${ok}/${R.layers.length}`;
+  document.getElementById('tActive').textContent = R.active;
+}
+function renderRuntime() {
+  const el = document.getElementById('runtime');
+  const ok = R.layers.filter(f => R.status[f] === 'ok').length;
+  const missing = R.layers.filter(f => R.status[f] === 'missing').length;
+  el.innerHTML = `
+    <div class="stat-row"><span class="k">active</span><span class="v go">${R.active}</span></div>
+    <div class="stat-row"><span class="k">layers ok</span><span class="v ok">${ok}/${R.layers.length}</span></div>
+    <div class="stat-row"><span class="k">missing</span><span class="v ${missing?'rd':'ok'}">${missing}</span></div>
+    <div class="stat-row"><span class="k">runs</span><span class="v cy">${R.runs}</span></div>
+    <div class="stat-row"><span class="k">rule</span><span class="v">3→9→81→3</span></div>
+    <div class="stat-row"><span class="k">mode</span><span class="v">forward only</span></div>`;
+  document.getElementById('tRuns').textContent = R.runs;
+  document.getElementById('tMissing').textContent = missing;
+}
+function handleCmd(cmd) {
+  const c = cmd.trim().toLowerCase();
+  if (!c) return;
+  log(`rt> ${cmd}`,'info');
+  if (c === 'help') log('de · tr · en · kodex · check · run · status · switch <file>','ok');
+  else if (c === 'de') switchTo('de.html');
+  else if (c === 'tr') switchTo('tr.html');
+  else if (c === 'en') switchTo('en.html');
+  else if (c === 'kodex') switchTo('kodex.html');
+  else if (c === 'check') checkAll();
+  else if (c === 'run') { R.runs++; log('▶ run dispatched to active layer','gold'); renderRuntime(); }
+  else if (c === 'status') log(`status · active=${R.active} runs=${R.runs} layers=${R.layers.length}`,'ok');
+  else if (c.startsWith('switch ')) switchTo(c.slice(7).trim());
+  else log(`unknown: ${c}`,'err');
+}
+document.getElementById('cmdInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { handleCmd(e.target.value); e.target.value = ''; }
+});
+document.getElementById('btnCheck').addEventListener('click', checkAll);
+document.getElementById('btnRun').addEventListener('click', () => { R.runs++; log('▶ run dispatched','gold'); renderRuntime(); });
+document.getElementById('btnKodex').addEventListener('click', () => switchTo('kodex.html'));
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === '1') switchTo('de.html');
+  if (e.key === '2') switchTo('tr.html');
+  if (e.key === '3') switchTo('en.html');
+  if (e.key === '4') switchTo('kodex.html');
+  if (e.key === 'c' || e.key === 'C') checkAll();
+});
+async function init() {
+  log('◈ iki1uc · runtime · index.html loaded','ok');
+  log('▸ layers: de.html · tr.html · en.html · kodex.html','info');
+  log('▸ keys: 1=de · 2=tr · 3=en · 4=kodex · C=check','info');
+  renderLayers(); renderRuntime();
+  await checkAll();
+}
+init();
+window.RUNTIME = { state: () => R, switchTo, check: checkAll, cmd: handleCmd };
+</script>
+</body>
+</html>
