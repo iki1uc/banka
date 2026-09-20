@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ CLUSTER · 3→9→81→3 · Behaviour Measure</title>
+<style>
+  :root{
+    --bg:#04070e;--bg2:#0a101e;--bg3:#101828;
+    --fg:#c8d8e8;--dim:#5a7288;--dim2:#2a3644;
+    --green:#7ce0a8;--cyan:#5fc8ff;--gold:#ffcc44;
+    --violet:#b388ff;--pink:#ff88b0;--red:#ff5a7a;
+    --line:rgba(140,180,220,0.09);--line2:rgba(140,180,220,0.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;color:var(--fg);font-family:'Consolas',monospace;font-size:12px;overflow:hidden;height:100vh}
+  #desk{width:100vw;height:100vh;background:var(--bg);display:flex;flex-direction:column}
+  #topbar{height:34px;background:linear-gradient(180deg,#0a101e,#04070e);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;
+    padding:0 14px;font-size:11px;letter-spacing:1px;gap:12px;flex-shrink:0}
+  #topbar .logo{color:var(--green);font-weight:bold;letter-spacing:3px;text-shadow:0 0 10px var(--green)}
+  #topbar .logo b{color:var(--gold)}
+  #topbar .sep{width:1px;height:16px;background:var(--line)}
+  #topbar .path{color:var(--dim);font-size:10px}
+  #topbar .stat{color:var(--dim);font-size:10px;display:flex;gap:12px;margin-left:auto;align-items:center;flex-wrap:wrap}
+  #topbar .stat b{font-weight:bold}
+  #topbar .stat b.g{color:var(--green)}
+  #topbar .stat b.c{color:var(--cyan)}
+  #topbar .stat b.a{color:var(--gold)}
+  #topbar .stat b.v{color:var(--violet)}
+  #topbar #clock{color:var(--cyan)}
+  #main{flex:1;display:grid;grid-template-columns:1fr 340px;overflow:hidden;min-height:0}
+  #centre{display:flex;flex-direction:column;overflow-y:auto;padding:10px;gap:10px;min-height:0}
+  #centre::-webkit-scrollbar{width:6px}
+  #centre::-webkit-scrollbar-thumb{background:var(--line)}
+  #right{background:var(--bg2);border-left:1px solid var(--line);overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+  #right::-webkit-scrollbar{width:5px}
+  #right::-webkit-scrollbar-thumb{background:var(--line)}
+  .panel{background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+  .panel h3{font-size:10px;letter-spacing:1.8px;color:var(--green);text-transform:uppercase;
+    margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;font-weight:normal}
+  .panel h3 .badge{font-size:9px;padding:1px 7px;border-radius:3px;background:rgba(124,224,168,0.1);color:var(--green)}
+  .panel h3 .badge.gold{background:rgba(255,204,68,0.1);color:var(--gold)}
+  .panel h3 .badge.cyan{background:rgba(95,200,255,0.1);color:var(--cyan)}
+  .panel h3 .badge.violet{background:rgba(179,136,255,0.1);color:var(--violet)}
+  #cycleBar{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--bg3);border-radius:6px;border:1px solid var(--line)}
+  .cycleStep{flex:1;text-align:center;padding:6px 4px;border-radius:4px;background:rgba(16,24,40,0.5);
+    border:1px solid var(--line);font-size:11px;color:var(--dim);transition:all .3s}
+  .cycleStep .n{font-size:16px;font-weight:bold;color:var(--fg);display:block;line-height:1.1}
+  .cycleStep .l{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim2);margin-top:2px}
+  .cycleStep.active{border-color:var(--gold);background:rgba(255,204,68,0.1);box-shadow:0 0 14px rgba(255,204,68,0.35)}
+  .cycleStep.active .n{color:var(--gold);text-shadow:0 0 8px var(--gold)}
+  .cycleStep.done{border-color:var(--green)}
+  .cycleStep.done .n{color:var(--green)}
+  .arrow{color:var(--dim2);font-size:14px;padding:0 2px}
+  #cluster3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .c3{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:10px;transition:.3s}
+  .c3.active{border-color:var(--cyan);box-shadow:0 0 16px rgba(95,200,255,0.3)}
+  .c3.done{border-color:var(--green);background:rgba(124,224,168,0.06)}
+  .c3 h4{font-size:10px;letter-spacing:1.5px;color:var(--cyan);margin-bottom:6px;text-transform:uppercase}
+  .c3.done h4{color:var(--green)}
+  .node3{display:flex;justify-content:space-between;padding:3px 0;font-size:10px;
+    border-bottom:1px dashed var(--line2);cursor:pointer}
+  .node3:last-child{border-bottom:none}
+  .node3:hover{color:var(--green)}
+  .node3 .nm{color:var(--fg)}
+  .node3 .vb{color:var(--dim);font-variant-numeric:tabular-nums}
+  .node3 .vb.ok{color:var(--green)}
+  .node3 .vb.med{color:var(--gold)}
+  .node3 .vb.low{color:var(--red)}
+  #cluster9{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+  .c9{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:8px;
+    transition:.3s;text-align:center}
+  .c9.active{border-color:var(--violet);box-shadow:0 0 16px rgba(179,136,255,0.3)}
+  .c9.done{border-color:var(--green);background:rgba(124,224,168,0.06)}
+  .c9 .id{font-size:9px;color:var(--violet);letter-spacing:2px}
+  .c9.done .id{color:var(--green)}
+  .c9 .val{font-size:20px;font-weight:bold;color:var(--fg);margin:3px 0;font-variant-numeric:tabular-nums}
+  .c9 .lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px}
+  #matrix81{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;
+    aspect-ratio:1;background:#03060c;padding:6px;border-radius:8px;
+    border:1px solid rgba(255,204,68,0.2);width:100%;max-width:460px;margin:0 auto;
+    box-shadow:0 0 20px rgba(255,204,68,0.06) inset}
+  .m{background:rgba(16,24,40,0.6);border-radius:3px;display:flex;align-items:center;justify-content:center;
+    font-size:7px;color:#3a4a5a;font-weight:bold;transition:all .22s;cursor:pointer}
+  .m:hover{transform:scale(1.15);z-index:3;border:1px solid var(--gold)}
+  .m.done{background:rgba(124,224,168,0.12);color:var(--green)}
+  .m.runner{background:rgba(255,204,68,0.4);color:#000;outline:2px solid var(--gold);
+    animation:pulseRunner .8s ease-in-out infinite}
+  @keyframes pulseRunner{
+    0%,100%{box-shadow:0 0 8px rgba(255,204,68,0.7)}
+    50%{box-shadow:0 0 20px rgba(255,204,68,1)}
+  }
+  .m.beh-0{background:rgba(90,114,136,0.2)}
+  .m.beh-1{background:rgba(95,200,255,0.15);color:var(--cyan)}
+  .m.beh-2{background:rgba(179,136,255,0.15);color:var(--violet)}
+  .m.beh-3{background:rgba(255,204,68,0.15);color:var(--gold)}
+  .m.beh-4{background:rgba(255,136,176,0.2);color:var(--pink)}
+  .btn-row{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .mbtn{background:var(--bg3);color:var(--fg);border:1px solid var(--line);
+    padding:6px 12px;border-radius:3px;font-family:inherit;font-size:10px;letter-spacing:1px;
+    cursor:pointer;transition:.15s;text-transform:uppercase;flex:1;min-width:80px}
+  .mbtn:hover{border-color:var(--green);background:rgba(124,224,168,0.1);color:var(--green)}
+  .mbtn.g{border-color:rgba(124,224,168,0.4);color:var(--green)}
+  .mbtn.c{border-color:rgba(95,200,255,0.4);color:var(--cyan)}
+  .mbtn.a{border-color:rgba(255,204,68,0.4);color:var(--gold)}
+  .mbtn.v{border-color:rgba(179,136,255,0.4);color:var(--violet)}
+  .mbtn.r{border-color:rgba(255,90,122,0.4);color:var(--red)}
+  .stat-row{display:flex;justify-content:space-between;padding:4px 0;
+    border-bottom:1px dashed var(--line2);font-size:10.5px}
+  .stat-row:last-child{border-bottom:none}
+  .stat-row .k{color:var(--dim)}
+  .stat-row .v{color:var(--fg);font-weight:bold;font-variant-numeric:tabular-nums}
+  .stat-row .v.ok{color:var(--green)}
+  .stat-row .v.med{color:var(--gold)}
+  .stat-row .v.low{color:var(--red)}
+  .stat-row .v.cy{color:var(--cyan)}
+  .stat-row .v.vi{color:var(--violet)}
+  .stat-row .v.go{color:var(--gold)}
+  #cli{height:140px;background:#02040a;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;flex-shrink:0}
+  #cliHdr{height:20px;background:var(--bg2);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;padding:0 12px;font-size:9px;letter-spacing:1.5px;
+    color:var(--dim);text-transform:uppercase;gap:12px}
+  #cliHdr .tag{margin-left:auto;color:var(--green);font-size:9px}
+  #log{flex:1;padding:6px 12px;overflow-y:auto;font-size:10px;line-height:1.55;color:var(--dim)}
+  #log::-webkit-scrollbar{width:6px}
+  #log::-webkit-scrollbar-thumb{background:var(--line)}
+  #log .ln{white-space:pre-wrap;word-break:break-all}
+  #log .ts{color:var(--dim2);margin-right:6px}
+  #log .ok{color:var(--green)}
+  #log .warn{color:var(--gold)}
+  #log .err{color:var(--red)}
+  #log .info{color:var(--cyan)}
+  #log .vio{color:var(--violet)}
+  #log .gold{color:var(--gold)}
+  #cliInput{height:24px;background:var(--bg3);border-top:1px solid var(--line);
+    display:flex;align-items:center;padding:0 12px;font-size:11px}
+  #cliInput .prompt{color:var(--green);margin-right:6px;font-weight:bold}
+  #cliInput input{flex:1;background:transparent;border:none;color:var(--fg);
+    font-family:inherit;font-size:11px;outline:none}
+  #cliInput input::placeholder{color:var(--dim2)}
+</style>
+</head>
+<body>
+<div id="desk">
+  <div id="topbar">
+    <span class="logo">◈ CLUSTER<b>::3·9·81·3</b></span>
+    <span class="sep"></span>
+    <span class="path">/work > cluster.html · EN-GB</span>
+    <div class="stat">
+      <span>WORK <b class="a" id="tWork">0</b></span>
+      <span>PHASE <b class="c" id="tPhase">3</b></span>
+      <span>CLUSTER <b class="v" id="tCl">0/6</b></span>
+      <span>NODES <b class="g" id="tNodes">0/81</b></span>
+      <span>Ø BEHAVIOUR <b class="a" id="tAvg">0.00</b></span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+  <div id="main">
+    <div id="centre">
+      <div class="panel">
+        <h3>◈ CYCLE · 3→9→81→3 <span class="badge gold" id="phaseBadge">phase 1 · 3</span></h3>
+        <div id="cycleBar">
+          <div class="cycleStep" data-p="3"><span class="n">3</span><span class="l">seed</span></div>
+          <span class="arrow">→</span>
+          <div class="cycleStep" data-p="9"><span class="n">9</span><span class="l">ring</span></div>
+          <span class="arrow">→</span>
+          <div class="cycleStep" data-p="81"><span class="n">81</span><span class="l">matrix</span></div>
+          <span class="arrow">→</span>
+          <div class="cycleStep" data-p="3b"><span class="n">3</span><span class="l">new</span></div>
+        </div>
+        <div class="btn-row">
+          <button class="mbtn g" id="btnStart">▶ start</button>
+          <button class="mbtn c" id="btnStep">⏭ step</button>
+          <button class="mbtn a" id="btnWork">◆ work done</button>
+          <button class="mbtn r" id="btnReset">⟲ reset</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>◈ PHASE 1 · 3-CLUSTER <span class="badge cyan" id="b3">0/3</span></h3>
+        <div id="cluster3"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ PHASE 2 · 9-RING <span class="badge violet" id="b9">0/3</span></h3>
+        <div id="cluster9"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ PHASE 3 · 81 MATRIX <span class="badge gold" id="b81">0/81</span></h3>
+        <div id="matrix81"></div>
+        <div style="text-align:center;font-size:9px;color:var(--dim);margin-top:6px;">
+          <span style="color:var(--cyan)">■</span> calm ·
+          <span style="color:var(--violet)">■</span> alert ·
+          <span style="color:var(--gold)">■</span> active ·
+          <span style="color:var(--pink)">■</span> intense ·
+          <span style="color:var(--green)">■</span> done
+        </div>
+      </div>
+    </div>
+    <div id="right">
+      <div class="panel">
+        <h3>◈ BEHAVIOUR · MEASURE <span class="badge cyan">live</span></h3>
+        <div id="stats"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ WORK · OUTPUT <span class="badge gold" id="wBadge">empty</span></h3>
+        <div id="work"></div>
+      </div>
+      <div class="panel">
+        <h3>◈ HISTORY <span class="badge violet" id="hBadge">0</span></h3>
+        <div id="history"></div>
+      </div>
+    </div>
+  </div>
+  <div id="cli">
+    <div id="cliHdr">
+      <span style="color:var(--green)">CLUSTER · 3→9→81→3 · EN-GB</span>
+      <span class="tag">◈ behaviour measure · work output</span>
+    </div>
+    <div id="log"></div>
+    <div id="cliInput">
+      <span class="prompt">cl&gt;</span>
+      <input id="cmdInput" placeholder="command: start · step · work · reset · status · behaviour · help" autocomplete="off">
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+const S = {
+  phase:'3', running:false, timer:null, tick:0,
+  clusters3:[], clusters9:[], matrix:[], runnerIdx:0,
+  work:null, history:[], behaviourAvg:0,
+};
+const logEl = document.getElementById('log');
+function log(msg, cls='') {
+  const t = new Date().toLocaleTimeString('en-GB');
+  const d = document.createElement('div');
+  d.className = 'ln';
+  d.innerHTML = `<span class="ts">[${t}]</span><span class="${cls}">${msg}</span>`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  while (logEl.children.length > 150) logEl.removeChild(logEl.firstChild);
+}
+function build3(){S.clusters3=[];for(let i=1;i<=3;i++){S.clusters3.push({id:i,nodes:[{id:`${i}.1`,behaviour:0,done:false},{id:`${i}.2`,behaviour:0,done:false},{id:`${i}.3`,behaviour:0,done:false}],done:false});}}
+function build9(){S.clusters9=[];for(let i=1;i<=3;i++){S.clusters9.push({id:i,value:0,done:false});}}
+function build81(){S.matrix=[];for(let i=0;i<81;i++){S.matrix.push({i,behaviour:0,done:false});}S.runnerIdx=0;}
+function render3(){
+  const el=document.getElementById('cluster3');el.innerHTML='';
+  S.clusters3.forEach((c,idx)=>{
+    const d=document.createElement('div');
+    d.className='c3'+(c.done?' done':(S.phase==='3'&&idx===0?' active':''));
+    let h=`<h4>◈ 3-CLUSTER · C${c.id}</h4>`;
+    c.nodes.forEach(n=>{
+      const cl=n.behaviour===0?'':(n.behaviour<2?'med':'ok');
+      h+=`<div class="node3"><span class="nm">N${n.id}</span><span class="vb ${cl}">${n.behaviour.toFixed(2)}</span></div>`;
+    });
+    d.innerHTML=h;el.appendChild(d);
+  });
+  document.getElementById('b3').textContent=`${S.clusters3.filter(c=>c.done).length}/3`;
+}
+function render9(){
+  const el=document.getElementById('cluster9');el.innerHTML='';
+  S.clusters9.forEach((c,idx)=>{
+    const d=document.createElement('div');
+    d.className='c9'+(c.done?' done':(S.phase==='9'&&idx===0?' active':''));
+    d.innerHTML=`<div class="id">RING ${c.id}</div><div class="val">${c.value.toFixed(2)}</div><div class="lbl">behaviour · avg</div>`;
+    el.appendChild(d);
+  });
+  document.getElementById('b9').textContent=`${S.clusters9.filter(c=>c.done).length}/3`;
+}
+function render81(){
+  const el=document.getElementById('matrix81');el.innerHTML='';
+  S.matrix.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.className='m'+(m.done?' done':` beh-${m.behaviour}`);
+    if(i===S.runnerIdx&&S.phase==='81')d.classList.add('runner');
+    d.textContent=m.done?'●':(m.behaviour>0?m.behaviour:'');
+    el.appendChild(d);
+  });
+  document.getElementById('b81').textContent=`${S.matrix.filter(m=>m.done).length}/81`;
+}
+function renderStats(){
+  const el=document.getElementById('stats');
+  const n3=S.clusters3.flatMap(c=>c.nodes);
+  const avg3=n3.length?n3.reduce((a,n)=>a+n.behaviour,0)/n3.length:0;
+  const avg9=S.clusters9.length?S.clusters9.reduce((a,c)=>a+c.value,0)/S.clusters9.length:0;
+  const done81=S.matrix.filter(m=>m.done);
+  const avg81=done81.length?done81.reduce((a,m)=>a+m.behaviour,0)/done81.length:0;
+  S.behaviourAvg=(avg3+avg9+avg81)/3;
+  el.innerHTML=`
+    <div class="stat-row"><span class="k">phase</span><span class="v cy">${S.phase}</span></div>
+    <div class="stat-row"><span class="k">3-cluster ø</span><span class="v ok">${avg3.toFixed(2)}</span></div>
+    <div class="stat-row"><span class="k">9-ring ø</span><span class="v vi">${avg9.toFixed(2)}</span></div>
+    <div class="stat-row"><span class="k">81 ø</span><span class="v go">${avg81.toFixed(2)}</span></div>
+    <div class="stat-row"><span class="k">overall ø</span><span class="v go">${S.behaviourAvg.toFixed(3)}</span></div>
+    <div class="stat-row"><span class="k">tick</span><span class="v">${S.tick}</span></div>`;
+  document.getElementById('tWork').textContent=S.work?S.work.value.toFixed(2):'0';
+  document.getElementById('tPhase').textContent=S.phase;
+  document.getElementById('tAvg').textContent=S.behaviourAvg.toFixed(3);
+  document.getElementById('tCl').textContent=`${S.clusters3.filter(c=>c.done).length+S.clusters9.filter(c=>c.done).length}/6`;
+  document.getElementById('tNodes').textContent=`${S.matrix.filter(m=>m.done).length}/81`;
+}
+function renderWork(){
+  const el=document.getElementById('work');
+  if(!S.work){el.innerHTML=`<div class="stat-row"><span class="k">no work yet</span></div>`;document.getElementById('wBadge').textContent='empty';return;}
+  el.innerHTML=`
+    <div class="stat-row"><span class="k">phase</span><span class="v cy">${S.work.phase}</span></div>
+    <div class="stat-row"><span class="k">value</span><span class="v go">${S.work.value.toFixed(3)}</span></div>
+    <div class="stat-row"><span class="k">cluster</span><span class="v">${S.work.clusters}</span></div>
+    <div class="stat-row"><span class="k">nodes</span><span class="v">${S.work.nodes}</span></div>
+    <div class="stat-row"><span class="k">behaviour</span><span class="v vi">${S.work.behaviour.toFixed(3)}</span></div>
+    <div class="stat-row"><span class="k">time</span><span class="v cy">${S.work.time}</span></div>`;
+  document.getElementById('wBadge').textContent='done';
+}
+function renderHistory(){
+  const el=document.getElementById('history');
+  if(!S.history.length)el.innerHTML=`<div class="stat-row"><span class="k">no entries</span></div>`;
+  else el.innerHTML=S.history.slice(-6).reverse().map(h=>`<div class="stat-row"><span class="k">${h.t}</span><span class="v go">${h.value.toFixed(2)}</span></div>`).join('');
+  document.getElementById('hBadge').textContent=S.history.length;
+}
+function step3(){
+  log('▸ phase 3 · measuring 3-clusters…','info');
+  S.clusters3.forEach(c=>{
+    c.nodes.forEach(n=>{n.behaviour=Math.random()*4;n.done=true;});
+    c.done=true;
+    log(`  ✔ cluster C${c.id} · ø ${(c.nodes.reduce((a,n)=>a+n.behaviour,0)/3).toFixed(2)}`,'ok');
+  });
+  S.phase='9';document.getElementById('phaseBadge').textContent='phase 2 · 9';
+  updateCycleBar();renderAll();
+}
+function step9(){
+  log('▸ phase 9 · aggregating 3 → 9-ring…','info');
+  S.clusters9.forEach((c,i)=>{
+    const c3=S.clusters3[i];if(!c3){c.value=0;c.done=true;return;}
+    const avg=c3.nodes.reduce((a,n)=>a+n.behaviour,0)/3;
+    c.value=avg;c.done=true;
+    log(`  ✔ ring K${c.id} · ø ${avg.toFixed(2)}`,'vio');
+  });
+  S.phase='81';document.getElementById('phaseBadge').textContent='phase 3 · 81';
+  updateCycleBar();renderAll();
+}
+function step81(){
+  if(S.phase!=='81')return;
+  const c=S.matrix[S.runnerIdx];
+  if(c&&!c.done){
+    const avg9=S.clusters9.reduce((a,c)=>a+c.value,0)/S.clusters9.length;
+    c.behaviour=Math.min(4,Math.floor(avg9+Math.random()*2));c.done=true;
+  }
+  S.runnerIdx++;
+  if(S.runnerIdx>=81){
+    S.phase='3b';document.getElementById('phaseBadge').textContent='phase 4 · 3 (new)';
+    log('✔ 81 matrix filled · rebirth','gold');updateCycleBar();
+  }
+  render81();renderStats();
+}
+function makeWork(){
+  const avg3=S.clusters3.flatMap(c=>c.nodes).reduce((a,n)=>a+n.behaviour,0)/9;
+  const avg9=S.clusters9.reduce((a,c)=>a+c.value,0)/Math.max(1,S.clusters9.length);
+  const d81=S.matrix.filter(m=>m.done);
+  const avg81=d81.length?d81.reduce((a,m)=>a+m.behaviour,0)/d81.length:0;
+  const value=(avg3*0.25+avg9*0.35+avg81*0.40);
+  const work={phase:'3→9→81→3',value,
+    clusters:S.clusters3.filter(c=>c.done).length+S.clusters9.filter(c=>c.done).length,
+    nodes:d81.length,
+    behaviour:(avg3+avg9+avg81)/3,
+    time:new Date().toLocaleTimeString('en-GB')};
+  S.work=work;S.history.push({t:work.time,value:work.value});
+  log(`◆ WORK DONE · value ${value.toFixed(3)} · nodes ${work.nodes} · ø behaviour ${work.behaviour.toFixed(3)}`,'gold');
+  renderWork();renderHistory();renderStats();
+  S.phase='3';S.runnerIdx=0;build3();build9();build81();
+  document.getElementById('phaseBadge').textContent='phase 1 · 3 (new)';
+  updateCycleBar();renderAll();
+  log('⟲ cycle closed · 3 (new)','warn');
+}
+function updateCycleBar(){
+  const map={'3':'3','9':'9','81':'81','3b':'3b'};
+  const cur=map[S.phase]||'3';
+  document.querySelectorAll('.cycleStep').forEach(el=>{
+    el.classList.remove('active','done');
+    const p=el.dataset.p;
+    if(p===cur)el.classList.add('active');
+    else{const o=['3','9','81','3b'];if(o.indexOf(p)<o.indexOf(cur))el.classList.add('done');}
+  });
+}
+function renderAll(){render3();render9();render81();renderStats();renderWork();renderHistory();}
+function start(){
+  if(S.running)return;S.running=true;
+  log('▶ run started · 3→9→81→3','gold');
+  step3();setTimeout(()=>step9(),600);
+  setTimeout(()=>{const t=setInterval(()=>{if(S.phase!=='81'){clearInterval(t);return;}step81();},25);},1200);
+  setTimeout(()=>{makeWork();S.running=false;},4000);
+}
+function reset(){
+  if(S.timer){clearInterval(S.timer);S.timer=null;}
+  S.phase='3';S.running=false;S.tick=0;S.work=null;S.history=[];S.behaviourAvg=0;
+  build3();build9();build81();
+  document.getElementById('phaseBadge').textContent='phase 1 · 3';
+  updateCycleBar();renderAll();
+  log('⟲ reset · back to base','warn');
+}
+let lastT=0;
+function loop(now){
+  const dt=Math.min(50,now-lastT||16)/1000;lastT=now;S.tick++;
+  if(S.tick%60===0){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB');renderStats();}
+  requestAnimationFrame(loop);
+}
+document.getElementById('btnStart').addEventListener('click',start);
+document.getElementById('btnStep').addEventListener('click',()=>{
+  if(S.phase==='3')step3();else if(S.phase==='9')step9();else if(S.phase==='81')step81();
+});
+document.getElementById('btnWork').addEventListener('click',makeWork);
+document.getElementById('btnReset').addEventListener('click',reset);
+document.querySelectorAll('.cycleStep').forEach(el=>{
+  el.addEventListener('click',()=>{
+    S.phase=el.dataset.p;
+    document.getElementById('phaseBadge').textContent=`phase · ${S.phase}`;
+    updateCycleBar();renderAll();log(`▸ phase set: ${S.phase}`,'info');
+  });
+});
+function handleCmd(cmd){
+  const c=cmd.trim().toLowerCase();if(!c)return;log(`cl> ${cmd}`,'info');
+  if(c==='help')log('start · step · work · reset · status · behaviour · nodes · clusters','ok');
+  else if(c==='start')start();
+  else if(c==='step')document.getElementById('btnStep').click();
+  else if(c==='work')makeWork();
+  else if(c==='reset')reset();
+  else if(c==='status')log(`status · phase=${S.phase} tick=${S.tick} work=${S.work?S.work.value.toFixed(3):'—'} avg=${S.behaviourAvg.toFixed(3)}`,'ok');
+  else if(c==='behaviour')log(`behaviour ø · 3=${(S.clusters3.flatMap(c=>c.nodes).reduce((a,n)=>a+n.behaviour,0)/9).toFixed(2)} · 9=${(S.clusters9.reduce((a,c)=>a+c.value,0)/Math.max(1,S.clusters9.length)).toFixed(2)}`,'vio');
+  else if(c==='nodes')log(`nodes · 3=${S.clusters3.flatMap(c=>c.nodes).filter(n=>n.done).length}/9 · 81=${S.matrix.filter(m=>m.done).length}/81`,'ok');
+  else if(c==='clusters')log(`clusters · 3=${S.clusters3.filter(c=>c.done).length}/3 · 9=${S.clusters9.filter(c=>c.done).length}/3`,'ok');
+  else log(`unknown: ${c}`,'err');
+}
+document.getElementById('cmdInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){handleCmd(e.target.value);e.target.value='';}
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='s'||e.key==='S')start();
+  if(e.key==='w'||e.key==='W')makeWork();
+  if(e.key==='r'||e.key==='R')reset();
+});
+function init(){
+  build3();build9();build81();updateCycleBar();renderAll();
+  log('◈ CLUSTER · 3→9→81→3 loaded','ok');
+  log('▸ phase 1 · 3-cluster · behaviour measure','info');
+  log('▸ flow: measure 3 → aggregate 9 → fill 81 → work','gold');
+  log('▸ keys: S=start · W=work · R=reset','info');
+  requestAnimationFrame(loop);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+window.CLUSTER={state:()=>S,start,step3,step9,step81,work:makeWork,reset,cmd:handleCmd};
+</script>
+</body>
+</html>
