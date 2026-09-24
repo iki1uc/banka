@@ -1,50 +1,102 @@
-# freeboote
-### kein zauber. reine mathematik.
+Kernbegriffe
+Zustand
 
-Autonomer RAM-Lauf ohne Schreiben. 64 unten + 64 oben = 128. Immer nur vorn.
+Ein Zustand beschreibt eine aktuelle Situation, Position oder Entscheidung.
 
----
+Beispiele:
 
-## 6 stellungen
-- **haupt 42** - diagonale D-O-W
-- **neben 43** - diagonale I-O-S
-- **ecken 55** - D,I,S,W
-- **spirale 128** - außenrum
-- **spalten** - vertikal
-- **mitte 15** - kristall
+Gesundheit
+Wissen
+Energie
+Ressourcen
+Arbeit
+Zeit
+Klick
 
-## wie es läuft
-- gerade/ungerade teilen Raum
-- einer hinten, einer vorn
-- Speicherplatz immer gleich: ja/nein (1/0)
-- 64x nacheinander, immer einen überspringen
-- wenn nötig ohne überspringen - wechsel wie gewünscht
+Ein Klick ist eine bewusste Entscheidung oder Aktion.
 
-## welle surfen
-- mit überspringen 50% - hoffen auf Zufall
-- ohne überspringen 100% - reicht immer
-- Nicht alles Machbare ist immer machbar. Darum nur 128.
+Ein Klick verändert einen Zustand.
 
-## stand
-`index.html` läuft komplett aus RAM, ohne zu schreiben.
-Mist im Kopf? -> nur das hier lesen.
+Marker
 
-## nutzung
-1. `index.html` öffnen
-2. Stellung wählen
-3. Loslaufen
+Marker dokumentieren Veränderungen.
 
-Kein Build, kein Install.
+Sie ermöglichen Nachvollziehbarkeit und Bewertung.
 
-## auftrieb
-> **Habt ihr genug vom Fallen? Ich habe Auftrieb.**
+ZaM
 
-## treue
-Für treue Kunden ab 2 Jahren: Automatisch 1 Punkt pro Jahr gut zum Einlösen = 1 freier Tobetag. Einfach "Punkt einlösen" schreiben. Immer nur vorn.
+Zeit und Zustand.
 
-## lizenz
-Mein Geschenk wenn es mal nicht läuft. So war es angedacht.
+Jede Veränderung wird in Bezug auf Zeit und Zustand betrachtet.
 
----
-iki1uc · 90 60 90 Erfüllung als rundrum
-onemanarmy · immer nur vorn
+Mathematische Grundlage
+
+Wert entsteht durch Wirkung über Zeit innerhalb eines Zustandes.
+
+Plain Text
+V = Z × T × W
+``
+Weitere Zeilen anzeigen
+
+Dabei gilt:
+
+Plain Text
+V = Wert
+Z = Zustand
+T = Zeit
+W = Wirkung
+ 
+Weitere Zeilen anzeigen
+
+Die Gesamtdynamik eines Systems ergibt sich aus allen Zustandsänderungen.
+
+Plain Text
+Ö = Σ ΔZ
+Weitere Zeilen anzeigen
+
+Dabei gilt:
+
+Plain Text
+Ö = Ökonomie
+ΔZ = Zustandsänderung
+Weitere Zeilen anzeigen
+Ziel
+
+BANKA soll eine führende Einheit zur Bewertung und Verwaltung von Zuständen sein.
+
+Nicht die Frage:
+
+Wie viel Geld ist vorhanden?
+
+sondern:
+
+Welche Zustände existieren?
+
+Wie haben sie sich verändert?
+
+Welche Wirkung wurde erreicht?
+
+Welche Entwicklung ist mathematisch erkennbar?
+
+Anwendungsfelder
+Persönliche Entwicklung
+Wissensmanagement
+Projektsteuerung
+Ressourcenmanagement
+Entscheidungsfindung
+Zustandsanalyse
+Dokumentation von Veränderungsprozessen
+Leitsatz
+
+Die eigentliche Währung eines Systems ist nicht Geld.
+
+Die eigentliche Währung sind Zustände, Zeit, Wirkung und ihre mathematisch nachvollziehbaren Veränderungen.
+
+Status
+
+Konzept- und Forschungsprojekt.
+
+BANKA untersucht die Möglichkeit einer zustandsbasierten Ökonomie als Erweiterung klassischer finanzieller Modelle.
+
+
+Diese Version ist GitHub-tauglich, verständlich für Außenstehende und transportiert deine Idee einer „Zustandsbank“ deutlich klarer als die bisherigen Stichworte.
