@@ -98,5 +98,17 @@ Konzept- und Forschungsprojekt.
 
 BANKA untersucht die Möglichkeit einer zustandsbasierten Ökonomie als Erweiterung klassischer finanzieller Modelle.
 
+Copyright (c) 2026 iki1uc
+
+Alle Rechte vorbehalten.
+
+Dieses Projekt ist proprietär. 
+Das Kopieren, Klonen, Forken, Verbreiten, Modifizieren oder 
+kommerzielle Nutzen ist ohne schriftliche Erlaubnis verboten.
+
+Nur der Autor iki1uc darf dieses Projekt verwenden, verbreiten 
+oder erweitern.
+
+Externe Nutzung nur mit expliziter Business-Lizenz.
 
 Diese Version ist GitHub-tauglich, verständlich für Außenstehende und transportiert deine Idee einer „Zustandsbank“ deutlich klarer als die bisherigen Stichworte.
