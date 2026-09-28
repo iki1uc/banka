@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ VEREINBARUNG · Kernprinzipien</title>
+<style>
+  :root{
+    --bg:#04070e; --bg2:#0a101e; --bg3:#101828;
+    --fg:#c8d8e8; --dim:#5a7288; --dim2:#2a3644;
+    --green:#7ce0a8; --cyan:#5fc8ff; --gold:#ffcc44;
+    --violet:#b388ff; --red:#ff5a7a; --amber:#ff8a2a;
+    --line:rgba(140,180,220,0.09)
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#000;color:var(--fg);
+    font-family:'Consolas','Courier New',monospace;
+    font-size:13px;min-height:100vh;
+    padding:16px;line-height:1.6
+  }
+  .wrap{max-width:920px;margin:0 auto}
+
+  /* Kopf */
+  header{
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px;margin-bottom:20px;
+    display:flex;justify-content:space-between;
+    align-items:baseline;flex-wrap:wrap;gap:10px
+  }
+  header h1{
+    font-size:18px;letter-spacing:4px;
+    color:var(--gold);font-weight:normal
+  }
+  header .stamp{
+    font-size:10px;letter-spacing:3px;
+    color:var(--dim);text-transform:uppercase
+  }
+
+  /* Abschnitte */
+  section{
+    background:var(--bg2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:16px 18px;
+    margin-bottom:14px
+  }
+  section h2{
+    font-size:11px;letter-spacing:2.5px;
+    color:var(--cyan);text-transform:uppercase;
+    font-weight:normal;
+    padding-bottom:8px;margin-bottom:12px;
+    border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between
+  }
+  section h2 b{color:var(--gold);font-weight:normal}
+
+  /* Sieben Elemente */
+  .elements{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px
+  }
+  @media(max-width:720px){.elements{grid-template-columns:repeat(4,1fr)}}
+  .el{
+    background:var(--bg3);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px 6px;text-align:center
+  }
+  .el .s{font-size:20px;display:block;margin-bottom:4px}
+  .el .n{font-size:9px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase}
+
+  /* Zeitachse */
+  .timeline{
+    position:relative;
+    padding:30px 0 10px;
+    margin-top:6px
+  }
+  .timeline .bar{
+    position:absolute;top:50%;left:0;right:0;
+    height:2px;background:var(--line);z-index:0
+  }
+  .timeline .phases{
+    display:grid;
+    grid-template-columns:3fr 3fr 3fr 3fr;
+    gap:8px;position:relative;z-index:1
+  }
+  .ph{
+    background:var(--bg3);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:8px 6px;text-align:center;
+    font-size:10px
+  }
+  .ph .lbl{
+    color:var(--dim);font-size:8.5px;
+    letter-spacing:1px;text-transform:uppercase
+  }
+  .ph .val{color:var(--fg);margin-top:3px;font-weight:bold}
+  .ph.open{border-color:rgba(124,224,168,0.4);background:rgba(124,224,168,0.05)}
+  .ph.open .val{color:var(--green)}
+  .ph.closed{border-color:rgba(255,90,122,0.4);background:rgba(255,90,122,0.05)}
+  .ph.closed .val{color:var(--red)}
+
+  /* Regeln */
+  .rule{
+    display:flex;gap:12px;
+    padding:8px 0;
+    border-bottom:1px dashed var(--line);
+    align-items:flex-start;
+    font-size:12px
+  }
+  .rule:last-child{border-bottom:none}
+  .rule .k{
+    color:var(--dim);font-size:9.5px;
+    letter-spacing:1.5px;text-transform:uppercase;
+    min-width:110px;padding-top:2px
+  }
+  .rule .v{flex:1;color:var(--fg)}
+  .rule .v b{color:var(--gold);font-weight:bold}
+  .rule .v .ok{color:var(--green)}
+  .rule .v .err{color:var(--red)}
+  .rule .v .warn{color:var(--amber)}
+
+  /* Bewertungsformel */
+  .formula{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:10px;
+    margin-top:6px
+  }
+  @media(max-width:640px){.formula{grid-template-columns:1fr}}
+  .formula .box{
+    background:var(--bg3);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px;text-align:center
+  }
+  .formula .box .t{
+    color:var(--dim);font-size:9px;
+    letter-spacing:1.5px;text-transform:uppercase
+  }
+  .formula .box .v{
+    color:var(--gold);font-size:14px;
+    margin-top:6px;font-weight:bold
+  }
+  .formula .box .d{
+    color:var(--dim);font-size:10px;margin-top:4px
+  }
+
+  /* 2+2+9 */
+  .pact{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:14px
+  }
+  @media(max-width:640px){.pact{grid-template-columns:1fr 1fr}}
+  .role{
+    background:var(--bg3);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px;text-align:center
+  }
+  .role .n{
+    color:var(--cyan);font-size:11px;
+    letter-spacing:2px;text-transform:uppercase
+  }
+  .role .d{
+    color:var(--dim);font-size:10px;margin-top:4px
+  }
+  .role.a{border-color:rgba(124,224,168,0.4)}
+  .role.b{border-color:rgba(179,136,255,0.4)}
+  .role.w{border-color:rgba(255,204,68,0.3)}
+  .role.w .n{color:var(--gold)}
+
+  /* 9 Ja */
+  .nine{
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    gap:4px;
+    margin-top:10px
+  }
+  .nine .j{
+    background:var(--bg3);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:8px 2px;text-align:center;
+    font-size:10px;cursor:pointer;
+    transition:.15s;color:var(--dim)
+  }
+  .nine .j:hover{border-color:var(--green)}
+  .nine .j.on{background:rgba(124,224,168,0.12);border-color:var(--green);color:var(--green)}
+  .nine .j .n{display:block;font-size:14px;font-weight:bold}
+  .nine .j .l{font-size:8px;letter-spacing:0.5px}
+
+  .status{
+    margin-top:12px;font-size:11px;
+    padding:8px 12px;
+    background:var(--bg3);
+    border-left:3px solid var(--line);
+    border-radius:3px;
+    color:var(--dim)
+  }
+  .status.ok{border-left-color:var(--green);color:var(--green)}
+  .status.warn{border-left-color:var(--amber);color:var(--amber)}
+
+  footer{
+    margin-top:24px;padding-top:14px;
+    border-top:1px solid var(--line);
+    font-size:10px;color:var(--dim2);
+    letter-spacing:1.5px;text-align:center
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>◈ VEREINBARUNG</h1>
+    <div class="stamp">2 · 2 · 9 &nbsp;|&nbsp; kern · prinzipien</div>
+  </header>
+
+  <!-- 1. SIEBEN ELEMENTE -->
+  <section>
+    <h2>◈ Die Elemente <b>7</b></h2>
+    <div class="elements">
+      <div class="el"><span class="s">🌾</span><span class="n">Korn</span></div>
+      <div class="el"><span class="s">🧑‍🌾</span><span class="n">Bauer</span></div>
+      <div class="el"><span class="s">⬛</span><span class="n">Land</span></div>
+      <div class="el"><span class="s">💧</span><span class="n">Wasser</span></div>
+      <div class="el"><span class="s">⏳</span><span class="n">Zeit</span></div>
+      <div class="el"><span class="s">🤲</span><span class="n">Mühe</span></div>
+      <div class="el"><span class="s">✦</span><span class="n">Glück</span></div>
+    </div>
+  </section>
+
+  <!-- 2. ZEIT -->
+  <section>
+    <h2>◈ Zeit · Monate &amp; Ereignisse <b>12 Monate = 1 Jahr</b></h2>
+    <div class="timeline">
+      <div class="bar"></div>
+      <div class="phases">
+        <div class="ph open">
+          <div class="lbl">Phase 1 · Aussaat</div>
+          <div class="val">Monat 1–3</div>
+        </div>
+        <div class="ph open">
+          <div class="lbl">Phase 2 · Wachstum</div>
+          <div class="val">Monat 4–6</div>
+        </div>
+        <div class="ph open">
+          <div class="lbl">Phase 3 · Reife</div>
+          <div class="val">Monat 7–9</div>
+        </div>
+        <div class="ph closed">
+          <div class="lbl">Phase 4 · Ernte</div>
+          <div class="val">Monat 10–12 · nichts</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.6">
+      Ein <b style="color:var(--gold)">Ereignis</b> wird bewertet, nicht der Kalender.
+      Wachstum in Monaten, Reife in Ereignissen, Ernte in Ruhe.
+    </div>
+  </section>
+
+  <!-- 3. FAIR USE -->
+  <section>
+    <h2>◈ Fair Use · Pestizide &amp; Bio <b>nur vorne · nie hinten</b></h2>
+    <div class="rule">
+      <div class="k">Pestizide</div>
+      <div class="v">
+        frei bis <b>höchstens 10%</b> des Differential-Verständnisses.
+        Kein Gramm darüber. Nachweis Pflicht.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Bio</div>
+      <div class="v">
+        bis <b>3× · aber jedes Mal nur 3× Menge</b>.
+        Kein Vierfaches. Kein Fünffaches. Dreifach, dreimal. Punkt.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Wo</div>
+      <div class="v">
+        <span class="ok">nur in vorderen Wachstumsphasen</span>
+        — Phase 1 und Phase 2.
+        <span class="err">Nicht in Reife und Ernte.</span>
+        Das letzte halbe Jahr: <b>nichts</b>.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Wiederholung</div>
+      <div class="v">
+        keine Wiederholung von
+        <b>Pflanze</b> · <b>Erde</b> · <b>Bewässerung</b>.
+        Weder im gleichen Feld noch im gleichen Jahr.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Ergebnis</div>
+      <div class="v">
+        Wenn alles erfüllt → <span class="ok">fair use</span>.
+        Wenn nicht → keine Anerkennung.
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. BEWERTUNG -->
+  <section>
+    <h2>◈ Bewertung <b>wie viel · von wie viel · zu wie viel</b></h2>
+    <div class="formula">
+      <div class="box">
+        <div class="t">Wie viel</div>
+        <div class="v">INPUT</div>
+        <div class="d">Korn · Wasser · Mühe · Zeit</div>
+      </div>
+      <div class="box">
+        <div class="t">Von wie viel</div>
+        <div class="v">QUELLE</div>
+        <div class="d">Land · Bauer · Phase · Ereignis</div>
+      </div>
+      <div class="box">
+        <div class="t">Zu wie viel</div>
+        <div class="v">ERGEBNIS</div>
+        <div class="d">Ernte · fair · 1:1</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-top:12px;line-height:1.6">
+      Keine Note. Kein Ranking. Nur: <b style="color:var(--gold)">wie viel von wie viel zu wie viel.</b>
+      Drei Zahlen. Eine Geschichte. Fertig.
+    </div>
+  </section>
+
+  <!-- 5. VERSICHERUNG -->
+  <section>
+    <h2>◈ Ich biete mehr als jeder andere <b>wenn · dann</b></h2>
+    <div class="rule">
+      <div class="k">Bedingung</div>
+      <div class="v">
+        Nachweis erbracht. Alles gezeigt. Alles geprüft.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Dann</div>
+      <div class="v">
+        <b>Ich biete mehr als jeder andere.</b>
+        Nicht gleich viel. Mehr. Weil: hier wird nichts versteckt.
+      </div>
+    </div>
+    <div class="rule">
+      <div class="k">Nicht</div>
+      <div class="v">
+        Kein Aufschlag. Kein Zins. Kein Minus.
+        1:1 — immer.
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. DAS BÜNDNIS -->
+  <section>
+    <h2>◈ Bündnis <b>2 · 2 · 9</b></h2>
+    <div class="pact">
+      <div class="role a"><div class="n">Seite A</div><div class="d">gibt</div></div>
+      <div class="role b"><div class="n">Seite B</div><div class="d">nimmt</div></div>
+      <div class="role w"><div class="n">Zeuge 1</div><div class="d">sieht</div></div>
+      <div class="role w"><div class="n">Zeuge 2</div><div class="d">steht dafür</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:10px">
+      Neun Ja. Nicht eins, nicht drei. Neun — <b style="color:var(--gold)">tief genug, um zu wissen.</b>
+    </div>
+    <div class="nine" id="nine">
+      <div class="j" data-n="1"><span class="n">1</span><span class="l">weiß</span></div>
+      <div class="j" data-n="2"><span class="n">2</span><span class="l">weiß</span></div>
+      <div class="j" data-n="3"><span class="n">3</span><span class="l">weiß</span></div>
+      <div class="j" data-n="4"><span class="n">4</span><span class="l">gibt</span></div>
+      <div class="j" data-n="5"><span class="n">5</span><span class="l">gibt</span></div>
+      <div class="j" data-n="6"><span class="n">6</span><span class="l">gibt</span></div>
+      <div class="j" data-n="7"><span class="n">7</span><span class="l">kostet</span></div>
+      <div class="j" data-n="8"><span class="n">8</span><span class="l">kostet</span></div>
+      <div class="j" data-n="9"><span class="n">9</span><span class="l">kostet</span></div>
+    </div>
+    <div class="status" id="pactStatus">
+      Drücke alle neun. Erst dann ist es gültig.
+    </div>
+  </section>
+
+  <footer>
+    ◈ VEREINBARUNG · 2+2+9 · 1:1 · kein minus · per du
+    <br>
+    kern in einem blatt. nichts mehr.
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+
+const js = document.querySelectorAll('#nine .j');
+const status = document.getElementById('pactStatus');
+let count = 0;
+
+js.forEach(j => {
+  j.addEventListener('click', () => {
+    j.classList.toggle('on');
+    count = document.querySelectorAll('#nine .j.on').length;
+
+    if (count === 9) {
+      status.className = 'status ok';
+      status.textContent = '◈ GÜLTIG · 9× ja · 2 seiten · 2 zeugen · vereinbarung steht.';
+    } else if (count >= 6) {
+      status.className = 'status warn';
+      status.textContent = count + '/9 · fast. drei fehlen noch.';
+    } else if (count > 0) {
+      status.className = 'status warn';
+      status.textContent = count + '/9 · wächst. jeder klick ist eine stimme.';
+    } else {
+      status.className = 'status';
+      status.textContent = 'Drücke alle neun. Erst dann ist es gültig.';
+    }
+  });
+});
+</script>
+</body>
+</html>
