@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ WETTER · Zone · Atmosphäre · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#02060a;color:#c8d8e8;
+    font-family:Consolas,monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:34px 1fr 26px}
+
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:14px;
+    font-size:10px;color:#5a7288}
+
+  #main{position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+
+  #stimmung{
+    position:absolute;bottom:26px;left:50%;
+    transform:translateX(-50%);
+    text-align:center;pointer-events:none
+  }
+  #stimmung .s{
+    font-size:24px;letter-spacing:8px;font-weight:bold;
+    text-shadow:0 0 20px currentColor;color:#8cf0d0;
+    transition:color .8s, text-shadow .8s
+  }
+  #stimmung .b{
+    font-size:10px;letter-spacing:3px;color:#5a7288;
+    margin-top:4px;text-transform:uppercase
+  }
+
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <span>◈ <b>WETTER</b> · Zone · Atmosphäre</span>
+  <span class="right">
+    <span>MANA <b id="tMana">50</b></span>
+    <span>AURA <b id="tAura">50</b></span>
+    <span>ZEN <b id="tZen">50</b></span>
+    <span>CO₂ <b id="tCO2">50</b></span>
+    <span>O₂ <b id="tO2">50</b></span>
+  </span>
+</div>
+
+<div id="main">
+  <canvas id="c"></canvas>
+  <div id="stimmung">
+    <div class="s" id="sLabel">ÜBERGANG</div>
+    <div class="b" id="sLabelSub">8 stationen · lebendig</div>
+  </div>
+</div>
+
+<div id="bottom">
+  <span>◈ Atmosphäre · 8 Stationen · Klima</span>
+  <span>Mana · Aura · Zen · CO₂ · O₂</span>
+  <span style="margin-left:auto">© iki1uc</span>
+</div>
+
+<script>
+"use strict";
+
+/* ─── Zustand ────────────────────────────────────────── */
+const S = {
+  tick: 0,
+  wetter: 0.5,    // 0 = Hölle, 0.5 = Übergang, 1 = Paradies
+  ziel: 0.5,
+  mana: 50, aura: 50, zen: 50,
+  co2: 50, o2: 50
+};
+
+/* ─── 8 Stationen ────────────────────────────────────── */
+const STATIONEN = [
+  { n:"schaefer",    w:0.5 },
+  { n:"markt",       w:0.6 },
+  { n:"bench",       w:0.4 },
+  { n:"hinterband",  w:0.7 },
+  { n:"vereinbarung",w:0.8 },
+  { n:"kodex",       w:0.6 },
+  { n:"energie",     w:0.5 },
+  { n:"id",          w:0.9 }
+];
+
+/* ─── Canvas ─────────────────────────────────────────── */
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let W, H, cx, cy;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2; cy = H / 2;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* ─── Atem ───────────────────────────────────────────── */
+function atme() {
+  // Wetter driftet langsam
+  if (Math.random() < 0.02) {
+    S.ziel = 0.15 + Math.random() * 0.7;
+  }
+  S.wetter += (S.ziel - S.wetter) * 0.005;
+
+  // Werte folgen dem Wetter
+  S.mana = Math.round(20 + S.wetter * 70 + Math.sin(S.tick * 0.01) * 5);
+  S.aura = Math.round(20 + S.wetter * 70 + Math.sin(S.tick * 0.013 + 1) * 5);
+  S.zen  = Math.round(20 + (1 - S.wetter) * 70 + Math.sin(S.tick * 0.008 + 2) * 5);
+  S.co2  = Math.round(80 - S.wetter * 60 + Math.sin(S.tick * 0.02) * 3);
+  S.o2   = Math.round(20 + S.wetter * 60 + Math.sin(S.tick * 0.018 + 1) * 3);
+
+  // Stationen driften leicht
+  STATIONEN.forEach((st, i) => {
+    if (Math.random() < 0.01) {
+      st.w += (Math.random() - 0.5) * 0.1;
+      st.w = Math.max(0, Math.min(1, st.w));
+    }
+  });
+
+  // UI Update
+  document.getElementById("tMana").textContent = S.mana;
+  document.getElementById("tAura").textContent = S.aura;
+  document.getElementById("tZen").textContent  = S.zen;
+  document.getElementById("tCO2").textContent  = S.co2;
+  document.getElementById("tO2").textContent   = S.o2;
+
+  // Stimmungstext
+  const lbl = document.getElementById("sLabel");
+  const sub = document.getElementById("sLabelSub");
+  const avg = STATIONEN.reduce((a,b) => a+b.w, 0) / 8;
+  const x = (S.wetter + avg) / 2;
+
+  if (x > 0.75)      { lbl.textContent = "PARADIES"; lbl.style.color = "#f0d080"; sub.textContent = "alle stationen leuchten"; }
+  else if (x > 0.55) { lbl.textContent = "KLAR";     lbl.style.color = "#8cf0d0"; sub.textContent = "8 stationen · ruhig"; }
+  else if (x > 0.4)  { lbl.textContent = "ÜBERGANG"; lbl.style.color = "#5cf0ff"; sub.textContent = "8 stationen · lebendig"; }
+  else if (x > 0.25) { lbl.textContent = "ERWACHEN"; lbl.style.color = "#b388ff"; sub.textContent = "8 stationen · atmen"; }
+  else               { lbl.textContent = "HÖLLE";    lbl.style.color = "#ff5a7a"; sub.textContent = "8 stationen · kalt"; }
+}
+
+/* ─── Zeichnen ───────────────────────────────────────── */
+function draw() {
+  const t = S.tick;
+
+  // sanfter Schleier
+  ctx.fillStyle = "rgba(2,6,10,0.18)";
+  ctx.fillRect(0, 0, W, H);
+
+  // Wetter-Farben: Hölle (rot) → Übergang (cyan) → Paradies (gold)
+  const w = S.wetter;
+  let r, g, b;
+  if (w < 0.5) {
+    // Hölle → Übergang
+    const k = w * 2;
+    r = Math.round(255 * (1 - k) + 92 * k);
+    g = Math.round(90 * (1 - k) + 240 * k);
+    b = Math.round(122 * (1 - k) + 255 * k);
+  } else {
+    // Übergang → Paradies
+    const k = (w - 0.5) * 2;
+    r = Math.round(92 * (1 - k) + 240 * k);
+    g = Math.round(240 * (1 - k) + 208 * k);
+    b = Math.round(255 * (1 - k) + 128 * k);
+  }
+
+  // Hintergrund-Atmosphäre
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W,H)*0.7);
+  grad.addColorStop(0, `rgba(${r},${g},${b},0.10)`);
+  grad.addColorStop(0.5, `rgba(${r},${g},${b},0.04)`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 8 Stationen als Kreise im Ring
+  const R = Math.min(W, H) * 0.30;
+  STATIONEN.forEach((st, i) => {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2 + t * 0.0008;
+    const r2 = R * (1 + st.w * 0.15);
+    const x = cx + Math.cos(a) * r2;
+    const y = cy + Math.sin(a) * r2;
+
+    // Puls
+    const ph = t * 0.02 + i * 0.9;
+    const p = 0.5 + Math.sin(ph) * 0.5;
+    const size = 12 + st.w * 12 + p * 3;
+
+    // Farbe aus Station + Wetter
+    const cr = Math.round(r * (0.5 + st.w * 0.5));
+    const cg = Math.round(g * (0.5 + st.w * 0.5));
+    const cb = Math.round(b * (0.5 + st.w * 0.5));
+
+    // Glow
+    ctx.shadowColor = `rgb(${cr},${cg},${cb})`;
+    ctx.shadowBlur = 12 + st.w * 20;
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${0.5 + st.w * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Name
+    ctx.font = "10px Consolas";
+    ctx.fillStyle = `rgba(200,216,232,${0.5 + st.w * 0.5})`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(st.n, x, y + size + 6);
+  });
+
+  // Zentrum: Atmosphäre
+  const pulse = 0.6 + Math.sin(t * 0.04) * 0.4;
+  const coreR = 40 + pulse * 15;
+
+  ctx.shadowColor = `rgb(${r},${g},${b})`;
+  ctx.shadowBlur = 40 * pulse;
+  ctx.fillStyle = `rgba(${r},${g},${b},${0.4 + pulse * 0.3})`;
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Linien von Stationen zum Zentrum
+  STATIONEN.forEach((st, i) => {
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2 + t * 0.0008;
+    const r2 = R * (1 + st.w * 0.15);
+    const x = cx + Math.cos(a) * r2;
+    const y = cy + Math.sin(a) * r2;
+    ctx.strokeStyle = `rgba(${r},${g},${b},${0.08 + st.w * 0.1})`;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  });
+
+  S.tick++;
+  atme();
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+/* Public API */
+window.WETTER = {
+  state: () => ({ wetter: S.wetter, mana: S.mana, aura: S.aura, zen: S.zen,
+    co2: S.co2, o2: S.o2, stationen: STATIONEN.map(s => ({ n: s.n, w: s.w })) })
+};
+</script>
+</body>
+</html>
