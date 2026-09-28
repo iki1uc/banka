@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>◈ HINTERBAND · Wächter · iki1uc</title>
+<style>
+  body{background:#000;color:#c8d8e8;font-family:Consolas,monospace;padding:16px}
+  .wrap{max-width:1100px;margin:0 auto}
+  header{border-bottom:1px solid #1a2a3a;padding-bottom:10px;margin-bottom:16px}
+  h1{font-size:14px;letter-spacing:4px;color:#f0d080;font-weight:normal}
+  .drei{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .w{background:#0a0f1a;border:1px solid #1a2a3a;border-radius:6px;padding:12px}
+  .w h2{font-size:11px;letter-spacing:2px;margin-bottom:8px;font-weight:normal}
+  .w.rev h2{color:#b388ff}
+  .w.upd h2{color:#39ff88}
+  .w.upg h2{color:#ff8ab0}
+  .row{font-size:11px;padding:3px 0;border-bottom:1px dashed #1a2a3a;display:flex;justify-content:space-between}
+  .row:last-child{border-bottom:none}
+  .row .k{color:#5a7288}
+  .row .v{color:#f0d080}
+  .log{margin-top:16px;background:#000;border:1px solid #1a2a3a;border-radius:4px;padding:8px;font-size:10px;height:120px;overflow:auto;color:#5a7288}
+  .log div{padding:1px 0}
+  .regel{margin-top:16px;padding:10px;border-left:2px solid #f0d080;background:#0a0f1a;font-size:11px;color:#8ab0c0;line-height:1.6}
+  .tuer{display:flex;gap:16px;margin-top:16px;font-size:11px}
+  .tuer div{flex:1;padding:8px;border:1px dashed #39ff88;color:#39ff88;text-align:center;border-radius:4px}
+  .tuer div.aus{border-color:#f0d080;color:#f0d080}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>◈ HINTERBAND · Wächter · iki1uc</h1>
+</header>
+
+<div class="drei">
+  <div class="w rev">
+    <h2>REV · Rückblick</h2>
+    <div class="row"><span class="k">läufe</span><span class="v" id="rev-runs">0</span></div>
+    <div class="row"><span class="k">score</span><span class="v" id="rev-score">—</span></div>
+    <div class="row"><span class="k">stimme</span><span class="v" id="rev-state">wartet</span></div>
+  </div>
+  <div class="w upd">
+    <h2>UPD · Jetzt</h2>
+    <div class="row"><span class="k">änderungen</span><span class="v" id="upd-c">0</span></div>
+    <div class="row"><span class="k">level</span><span class="v" id="upd-l">0</span></div>
+    <div class="row"><span class="k">stimme</span><span class="v" id="upd-state">wartet</span></div>
+  </div>
+  <div class="w upg">
+    <h2>UPG · Voraus</h2>
+    <div class="row"><span class="k">erweitert</span><span class="v" id="upg-c">0</span></div>
+    <div class="row"><span class="k">level</span><span class="v" id="upg-l">0</span></div>
+    <div class="row"><span class="k">stimme</span><span class="v" id="upg-state">wartet</span></div>
+  </div>
+</div>
+
+<div class="tuer">
+  <div>◈ EINGANG FREI · REV prüft erst drinnen</div>
+  <div class="aus">◈ AUSGANG FREI · UPG erweitert erst draußen</div>
+</div>
+
+<div class="regel">
+  <b>Hinterband:</b> Drei Wächter. Kein Türsteher.<br>
+  REV sieht, was war. UPD wirkt, was ist. UPG baut, was kommt.<br>
+  Nichts blockiert. Alles sichtbar. 1:1. Kein Minus.
+</div>
+
+<div class="log" id="log"></div>
+
+</div>
+
+<script>
+"use strict";
+
+const W = {
+  rev:{runs:0,score:0,state:"wartet"},
+  upd:{c:0,level:0,state:"wartet"},
+  upg:{c:0,level:0,state:"wartet"}
+};
+
+const logEl = document.getElementById("log");
+function log(msg){
+  const t = new Date().toLocaleTimeString("de-DE");
+  const d = document.createElement("div");
+  d.textContent = `[${t}] ${msg}`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  while(logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
+}
+
+function tickRev(){
+  W.rev.runs++;
+  W.rev.score = Math.floor(Math.random()*40)+60;
+  W.rev.state = W.rev.score > 80 ? "klar" : W.rev.score > 70 ? "wackelt" : "ruhig";
+  document.getElementById("rev-runs").textContent = W.rev.runs;
+  document.getElementById("rev-score").textContent = W.rev.score;
+  document.getElementById("rev-state").textContent = W.rev.state;
+}
+
+function tickUpd(){
+  W.upd.c++;
+  W.upd.level = (W.upd.level + 1) % 10;
+  W.upd.state = W.upd.level < 5 ? "still" : "bewegt";
+  document.getElementById("upd-c").textContent = W.upd.c;
+  document.getElementById("upd-l").textContent = W.upd.level;
+  document.getElementById("upd-state").textContent = W.upd.state;
+}
+
+function tickUpg(){
+  W.upg.c++;
+  W.upg.level = (W.upg.level + 3) % 27;
+  W.upg.state = W.upg.level < 9 ? "grund" : W.upg.level < 18 ? "wachstum" : "reife";
+  document.getElementById("upg-c").textContent = W.upg.c;
+  document.getElementById("upg-l").textContent = W.upg.level;
+  document.getElementById("upg-state").textContent = W.upg.state;
+}
+
+setInterval(tickRev, 3000);
+setInterval(tickUpd, 1500);
+setInterval(tickUpg, 4500);
+
+setInterval(()=>{
+  log(`REV ${W.rev.runs} · UPD ${W.upd.c} · UPG ${W.upg.c} · 1:1 · kein minus`);
+}, 15000);
+
+log("◈ Hinterband gestartet · drei Wächter");
+log("◈ Eingang frei · Ausgang frei · Kontrolle dahinter");
+log("◈ 1:1 · kein minus · per du");
+</script>
+</body>
+</html>
