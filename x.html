@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X · BREITE · WUNDER · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#02060a;color:#c8d8e8;
+    font-family:Consolas,monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:34px 1fr 26px}
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:14px;
+    font-size:10px;color:#5a7288}
+  #main{position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  #stages{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;font-size:10px;letter-spacing:2px;pointer-events:none}
+  .stage{padding:4px 10px;border:1px solid #1a2a3a;
+    background:rgba(2,6,10,.7);border-radius:3px;color:#5a7288}
+  .stage.on{border-color:#f0d080;color:#f0d080}
+  .stage.done{border-color:#39ff88;color:#39ff88}
+  #info{position:absolute;bottom:14px;left:50%;
+    transform:translateX(-50%);text-align:center;font-size:11px;
+    letter-spacing:2px;pointer-events:none}
+  #info .k{color:#5a7288;font-size:9px;text-transform:uppercase}
+  #info .v{color:#f0d080;font-size:20px;font-weight:bold;
+    text-shadow:0 0 12px rgba(240,208,128,.5)}
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <span>◈ <b>X</b> · BREITE · WUNDER</span>
+  <span class="right">
+    <span>QUELLE <b id="tQ">—</b></span>
+    <span>WERT <b id="tV">—</b></span>
+    <span id="tClock">--:--:--</span>
+  </span>
+</div>
+
+<div id="main">
+  <canvas id="c"></canvas>
+  <div id="stages">
+    <div class="stage" id="s1">① EINFANGEN</div>
+    <div class="stage" id="s2">② VERANKERN</div>
+    <div class="stage" id="s3">③ AUSWERFEN</div>
+  </div>
+  <div id="info">
+    <div class="k" id="infoK">WUNDER-WERT</div>
+    <div class="v" id="infoV">0</div>
+  </div>
+</div>
+
+<div id="bottom">
+  <span>◈ X = Breite · Wunder · was erscheint ohne Grund</span>
+  <span>Einfangen → Verankern → Auswerfen</span>
+  <span style="margin-left:auto">© iki1uc</span>
+</div>
+
+<script>
+"use strict";
+
+/* ═══════════════════════════════════════════════════════
+   X · BREITE · WUNDER · einfangen · verankern · auswerfen
+   ═══════════════════════════════════════════════════════ */
+
+const S = { tick:0, breath:0, wert:0, stage:0, daten:[] };
+
+/* ─── Stage-Anzeige ──────────────────────────────────── */
+function setStage(i) {
+  S.stage = i;
+  ["s1","s2","s3"].forEach((id, k) => {
+    const el = document.getElementById(id);
+    el.className = "stage" + (k < i ? " done" : k === i ? " on" : "");
+  });
+}
+
+/* ─── EINFANGEN · Daten holen ────────────────────────── */
+async function einfangen() {
+  setStage(0);
+  try {
+    // Open-Meteo · frei · legal · kein Key
+    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=53.55&longitude=10.0&current=temperature_2m,wind_speed_10m");
+    const j = await res.json();
+    const temp = j.current?.temperature_2m ?? 15;
+    const wind = j.current?.wind_speed_10m ?? 10;
+    S.daten = [temp, wind];
+    document.getElementById("tQ").textContent = "open-meteo";
+    verankern();
+  } catch(e) {
+    // Fallback: wenn kein Netz, lokale Zeit
+    S.daten = [new Date().getHours(), new Date().getMinutes()];
+    document.getElementById("tQ").textContent = "lokal";
+    verankern();
+  }
+}
+
+/* ─── VERANKERN · Wert bilden ───────────────────────── */
+function verankern() {
+  setStage(1);
+  const [a, b] = S.daten;
+  // Breite = wie weit gestreut
+  S.wert = Math.round((Math.abs(a) * 2 + Math.abs(b)) % 100);
+  setTimeout(auswerfen, 400);
+}
+
+/* ─── AUSWERFEN · zeigen ────────────────────────────── */
+function auswerfen() {
+  setStage(2);
+  document.getElementById("tV").textContent = S.wert;
+  document.getElementById("infoV").textContent = S.wert;
+  setTimeout(() => setStage(0), 2000);
+}
+
+/* ─── Canvas ─────────────────────────────────────────── */
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let W, H, cx, cy;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+"px"; cv.style.height = H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx = W/2; cy = H/2;
+}
+resize();
+window.addEventListener("resize", resize);
+
+function draw() {
+  const t = S.tick;
+  ctx.fillStyle = "rgba(2,6,10,0.15)";
+  ctx.fillRect(0,0,W,H);
+
+  S.breath = 0.5 + Math.sin(t*0.03)*0.5;
+  const w = S.wert / 100;
+
+  // Horizontale Linien · Breite
+  for (let i = 0; i < 9; i++) {
+    const y = cy + (i-4) * 30;
+    const spread = 0.3 + w * 0.7;
+    const len = W * spread * (1 - Math.abs(i-4)/6);
+    ctx.strokeStyle = `rgba(240,208,128,${0.15 + w*0.5})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - len/2, y);
+    ctx.lineTo(cx + len/2, y);
+    ctx.stroke();
+  }
+
+  // Kern 42
+  const pulse = 0.6 + Math.sin(t*0.05)*0.4;
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,80+pulse*20);
+  grad.addColorStop(0, `rgba(240,208,128,${0.5+pulse*0.4})`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(cx,cy,80+pulse*20,0,Math.PI*2); ctx.fill();
+
+  ctx.font = "bold 36px Consolas";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = `rgba(255,255,255,${0.85+pulse*0.15})`;
+  ctx.shadowColor = "#f0d080"; ctx.shadowBlur = 20*pulse;
+  ctx.fillText("42", cx, cy+1);
+  ctx.shadowBlur = 0;
+
+  S.tick++;
+  requestAnimationFrame(draw);
+}
+
+/* ─── Uhr ────────────────────────────────────────────── */
+setInterval(() => {
+  document.getElementById("tClock").textContent =
+    new Date().toLocaleTimeString("de-DE");
+}, 1000);
+
+/* ─── Init ───────────────────────────────────────────── */
+draw();
+einfangen();
+setInterval(einfangen, 60000); // jede Minute neu
+</script>
+</body>
+</html>
