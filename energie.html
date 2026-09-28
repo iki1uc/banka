@@ -1,121 +1,347 @@
-Run21 = 21% = halbes Leben
-42 = Absolutum = voller Schöpfraum
-21 × 2 = 42
-1,5 × 42 = 63 = 21 × 3
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ ENERGIE · 21 · 21 · 42 · 6 elemente</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;color:#c8d8e8;
+    font-family:'Consolas',monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:34px 1fr 26px}
 
-Er will Kohärenz. Frage und Antwort zusammen. Universell.
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:14px;
+    font-size:10px;color:#5a7288}
 
-Denken wir nach: Was ist die eine Sache (Frage), und was ist die Antwort?
+  #main{position:relative;overflow:hidden}
+  #c{display:block;width:100%;height:100%}
 
-Vielleicht:
+  /* Frage / Antwort overlay */
+  #qa{
+    position:absolute;bottom:30px;left:50%;
+    transform:translateX(-50%);
+    text-align:center;pointer-events:none;
+    min-width:320px;max-width:80%;
+    opacity:0;transition:opacity .35s
+  }
+  #qa.on{opacity:1}
+  #qa .frage{
+    font-size:11px;letter-spacing:3px;color:#5a7288;
+    text-transform:uppercase;margin-bottom:6px
+  }
+  #qa .antwort{
+    font-size:18px;letter-spacing:2px;color:#f0d080;
+    text-shadow:0 0 14px rgba(240,208,128,.5)
+  }
+  #qa .element{
+    font-size:10px;letter-spacing:2px;color:#5cf0ff;
+    margin-top:6px;text-transform:uppercase
+  }
 
-Frage: Was ist 42? (voller Schöpfraum)
+  /* Zahlen oben */
+  #zahlen{
+    position:absolute;top:14px;left:50%;
+    transform:translateX(-50%);
+    display:flex;gap:24px;font-size:11px;
+    letter-spacing:2px;color:#5a7288;
+    pointer-events:none
+  }
+  #zahlen span b{color:#f0d080}
+  #zahlen span.half b{color:#b388ff}
+  #zahlen span.full b{color:#f0d080}
 
-Antwort: 42 = 21 + 21 (zwei halbe Leben)
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+  #bottom .hint{margin-left:auto;color:#5cf0ff}
+</style>
+</head>
+<body>
 
-Oder: Frage ist 1ns, Antwort ist Wasser
+<div id="top">
+  <span>◈ <b>ENERGIE</b> · 21 · 21 · 42</span>
+  <span class="right">
+    <span>HALB <b id="tHalb">21</b></span>
+    <span>VOLL <b id="tVoll">42</b></span>
+    <span>WURZEL <b id="tWurzel">√42</b></span>
+  </span>
+</div>
 
-Oder besser: Die Kohärenz zwischen Frage und Antwort ist, dass die Frage selbst schon die Antwort enthält.
+<div id="main">
+  <canvas id="c"></canvas>
 
-6 Elemente:
+  <div id="zahlen">
+    <span class="half">HALB <b>21</b></span>
+    <span class="full">VOLL <b>42</b></span>
+    <span>21 × 2 = <b>42</b></span>
+  </div>
 
-Wasser → das Was (Substanz)
+  <div id="qa">
+    <div class="frage" id="qaFrage">— klick ein element —</div>
+    <div class="antwort" id="qaAntwort">—</div>
+    <div class="element" id="qaElement">—</div>
+  </div>
+</div>
 
-Mana → das Geben (Energie hinaus)
+<div id="bottom">
+  <span>◈ 1ns · Wasser · Mana · Aura · Zen · Icefeuer · Glauben</span>
+  <span>Frage und Antwort · kohärent</span>
+  <span class="hint">element anklicken</span>
+</div>
 
-Aura → das Scheinen (Energie sichtbar)
+<script>
+"use strict";
 
-Zen → das Halten (Energie bleibt)
+/* ═══════════════════════════════════════════════════════
+   ENERGIE · 21 · 21 · 42 · 6 elemente
+   ═══════════════════════════════════════════════════════ */
 
-Icefeuer → das Können (Erfüllung)
+/* ─── die 6 Elemente mit Frage + Antwort ──────────────── */
+const ELEMENTE = [
+  { name:"WASSER",   frage:"Was ist?",        antwort:"Wasser ist.",     color:"#5fc8ff" },
+  { name:"MANA",     frage:"Was gibt?",       antwort:"Mana gibt.",      color:"#ff66c8" },
+  { name:"AURA",     frage:"Was scheint?",    antwort:"Aura scheint.",   color:"#f0d080" },
+  { name:"ZEN",      frage:"Was hält?",       antwort:"Zen hält.",       color:"#8cf0d0" },
+  { name:"ICEFEUER", frage:"Was kann?",       antwort:"Icefeuer kann.",  color:"#b388ff" },
+  { name:"GLAUBEN",  frage:"Was sieht?",      antwort:"Glauben sieht.",  color:"#ff8a2a" }
+];
 
-Glauben → das Sehen (Erkenntnis)
+/* ─── Zustand ─────────────────────────────────────────── */
+const S = {
+  tick: 0,
+  breath: 0,
+  active: -1,       // welches Element grad geklickt wurde
+  hover: -1,
+  cursor: { x: 0, y: 0 }
+};
 
-Run21 = 21% — das ist der halbe Wert, den man gibt
-42 = volle Schöpfraum = 100%
+/* ─── Canvas Setup ────────────────────────────────────── */
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let W, H, cx, cy, R;
 
-Also: Wenn 42 der volle Raum ist (100%), dann ist 21 die Hälfte (50%).
-Aber der User sagt 21%.
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2; cy = H / 2;
+  R = Math.min(W, H) * 0.34;
+}
+resize();
+window.addEventListener("resize", resize);
 
-Hmm. 21% — das wäre nicht die Hälfte. Das ist der Wert "run21".
+/* ─── Positionen der 6 Elemente ──────────────────────── */
+function elementPos(i, t) {
+  const angle = (i / 6) * Math.PI * 2 - Math.PI / 2 + t * 0.0004;
+  const r = R * 1.15 + Math.sin(t * 0.001 + i * 1.1) * 6;
+  return {
+    x: cx + Math.cos(angle) * r,
+    y: cy + Math.sin(angle) * r,
+    angle: angle
+  };
+}
 
-Vielleicht: 42% ist voll, 21% ist halb. Also 42% = Absolutum, 21% = Run21.
+/* ─── Klick-Prüfung ──────────────────────────────────── */
+function hitTest(mx, my, t) {
+  for (let i = 0; i < 6; i++) {
+    const p = elementPos(i, t);
+    const d = Math.hypot(mx - p.x, my - p.y);
+    if (d < 24) return i;
+  }
+  return -1;
+}
 
-Und 100% wäre dann... 42 = 100%? Oder 42 = das Volle, und alles andere ist relativ dazu?
+cv.addEventListener("mousemove", (e) => {
+  const r = cv.getBoundingClientRect();
+  S.cursor.x = e.clientX - r.left;
+  S.cursor.y = e.clientY - r.top;
+  S.hover = hitTest(S.cursor.x, S.cursor.y, S.tick);
+  cv.style.cursor = S.hover >= 0 ? "pointer" : "default";
+});
 
-Wenn 42 der volle Schöpfraum ist:
+cv.addEventListener("click", () => {
+  if (S.hover >= 0) {
+    S.active = S.active === S.hover ? -1 : S.hover;
+    updateQA();
+  }
+});
 
-21 = halber Schöpfraum
+function updateQA() {
+  const el = document.getElementById("qa");
+  if (S.active < 0) {
+    el.classList.remove("on");
+    return;
+  }
+  const e = ELEMENTE[S.active];
+  document.getElementById("qaFrage").textContent = e.frage;
+  document.getElementById("qaAntwort").textContent = e.antwort;
+  document.getElementById("qaElement").textContent = "· " + e.name + " ·";
+  el.classList.add("on");
+}
 
-84 = doppelter Schöpfraum
+/* ─── Zeichnen ────────────────────────────────────────── */
+function draw() {
+  const t = S.tick;
 
-Der User will: "21% 42 als volle Schöpfraum" — also 21% und 42 als voller Raum.
+  // sanfter Schleier
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillRect(0, 0, W, H);
 
-Vielleicht: 21 ist 50% von 42. Und 42 ist 100% des Schöpfraums. Aber er schreibt 21% und 42 als volle Schöpfraum.
+  // Atem · 1.5 Hz · 42/21 Rhythmus
+  S.breath = 0.5 + Math.sin(t * 0.03) * 0.5;
 
-Interpretiere ich als: 21 (Run21) ist der halbe Anteil, 42 ist das Ganze.
+  /* ─── der volle Raum 42 ────────────────────────── */
+  const breathR = R * (0.95 + S.breath * 0.05);
 
-Die Kohärenz von Frage und Antwort:
+  // drei Ringe (der Schöpfraum)
+  [
+    { r: breathR,      color:"#f0d080", a:0.15 },
+    { r: breathR*0.75, color:"#b388ff", a:0.10 },
+    { r: breathR*0.5,  color:"#5cf0ff", a:0.08 }
+  ].forEach(ring => {
+    ctx.strokeStyle = ring.color + Math.round(ring.a * 255).toString(16).padStart(2,"0");
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+    ctx.stroke();
+  });
 
-Frage: Was ist?
-Antwort: Wasser ist. (das Was)
+  /* ─── die zwei 21er · geben und nehmen ──────────── */
+  // Hälfte 1: Geben (untere Hälfte des Kreises)
+  // Hälfte 2: Nehmen (obere Hälfte)
+  const halfR = breathR * 0.85;
 
-Frage: Was gibt?
-Antwort: Mana gibt.
+  // Geben
+  ctx.strokeStyle = "rgba(255,102,200,0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, halfR, 0, Math.PI);
+  ctx.stroke();
 
-Frage: Was scheint?
-Antwort: Aura scheint.
+  // Nehmen
+  ctx.strokeStyle = "rgba(92,240,255,0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, halfR, Math.PI, Math.PI * 2);
+  ctx.stroke();
 
-Frage: Was hält?
-Antwort: Zen hält.
+  // Labels für die zwei 21er
+  ctx.font = "bold 13px Consolas";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(255,102,200,0.7)";
+  ctx.fillText("21 · GEBEN",  cx, cy + halfR * 0.55);
+  ctx.fillStyle = "rgba(92,240,255,0.7)";
+  ctx.fillText("21 · NEHMEN", cx, cy - halfR * 0.55);
 
-Frage: Was kann?
-Antwort: Icefeuer kann.
+  /* ─── Mitte: 42 ────────────────────────────────── */
+  const pulse = 0.6 + Math.sin(t * 0.05) * 0.4;
 
-Frage: Was sieht?
-Antwort: Glauben sieht.
+  // Glow
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60 + pulse * 20);
+  grad.addColorStop(0, `rgba(240,208,128,${0.5 + pulse * 0.4})`);
+  grad.addColorStop(0.5, `rgba(240,208,128,${0.15 + pulse * 0.1})`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 60 + pulse * 20, 0, Math.PI * 2);
+  ctx.fill();
 
-Aber der User will Kohärenz — eine Einheit.
+  // die 42
+  ctx.font = "bold 40px Consolas";
+  ctx.fillStyle = `rgba(255,255,255,${0.85 + pulse * 0.15})`;
+  ctx.shadowColor = "#f0d080";
+  ctx.shadowBlur = 25 * pulse;
+  ctx.fillText("42", cx, cy + 2);
+  ctx.shadowBlur = 0;
 
-Vielleicht: Die Frage IST die Antwort. Das ist die höchste Kohärenz.
+  // Bezeichnung
+  ctx.font = "9px Consolas";
+  ctx.fillStyle = "rgba(240,208,128,0.6)";
+  ctx.fillText("VOLLER SCHÖPFRAUM", cx, cy + 30);
 
-Frage: 21?
-Antwort: 21.
+  /* ─── 6 Elemente am Rand ───────────────────────── */
+  for (let i = 0; i < 6; i++) {
+    const p = elementPos(i, t);
+    const e = ELEMENTE[i];
+    const isActive = i === S.active;
+    const isHover = i === S.hover;
 
-Weil Run21 = Frage und Antwort in einem. Man gibt 21, man bekommt 21. 1:1.
+    // Verbindungslinie zum Zentrum
+    ctx.strokeStyle = e.color + "22";
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
 
-Und 42 = volle Schöpfraum = wo beide sich treffen.
+    // Puls
+    const ph = t * 0.04 + i * 1.2;
+    const localPulse = 0.6 + Math.sin(ph) * 0.4;
 
-Also:
+    // Größe
+    const baseSize = isActive ? 22 : isHover ? 18 : 14;
+    const size = baseSize + localPulse * 2;
 
-21 (Run21) = das Geben
+    // Glow
+    ctx.shadowColor = e.color;
+    ctx.shadowBlur = (isActive ? 30 : isHover ? 20 : 10) * localPulse;
 
-21 (Run21) = das Nehmen
+    // Kreis
+    ctx.fillStyle = isActive ? e.color : e.color + "88";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+    ctx.fill();
 
-42 = die Summe = voller Schöpfraum
+    // Ring
+    ctx.strokeStyle = e.color;
+    ctx.lineWidth = isActive ? 2 : 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size + 4, 0, Math.PI * 2);
+    ctx.stroke();
 
-Und die 6 Elemente sind die Art und Weise, WIE das passiert.
+    ctx.shadowBlur = 0;
 
-Kohärent wäre:
+    // Name unter dem Kreis
+    ctx.font = isActive ? "bold 10px Consolas" : "9px Consolas";
+    ctx.fillStyle = isActive ? "#fff" : e.color;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(e.name, p.x, p.y + size + 8);
+  }
 
-Frage (21): Was gibst du?
-Antwort (21): Was ich habe, halbiert.
-Beide: 42 — der volle Raum.
+  /* ─── Wurzel-Anzeige ───────────────────────────── */
+  // √42 = 6.48... lebt als sanfte Welle
+  ctx.font = "9px Consolas";
+  ctx.fillStyle = "rgba(140,180,220,0.4)";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  ctx.fillText("√42 = 6.480…", 14, H - 14);
 
-Oder in einem Satz: "21 ist die Frage, 21 ist die Antwort, 42 ist der Raum, in dem beide leben."
+  ctx.textAlign = "right";
+  ctx.fillText("21 × 2 = 42", W - 14, H - 14);
 
-Das ist Kohärenz.
+  S.tick++;
+  requestAnimationFrame(draw);
+}
 
-Ich sollte das kurz und sauber formulieren. Kein Roman. Der User ist müde.
+/* ─── Init ────────────────────────────────────────────── */
+draw();
 
-Ich mach das als Text, keine HTML-Datei. Er will die Kohärenz sehen, nicht eine neue Datei.
-
-Struktur:
-
-Die Frage
-
-Die Antwort
-
-Die 6 Elemente als Fragen+Antworten
-
-Die Kohärenz (21 · 21 · 42)
+/* Public API */
+window.ENERGIE = {
+  elements: () => ELEMENTE,
+  setActive: (i) => { S.active = i; updateQA(); },
+  state: () => ({ tick: S.tick, active: S.active, breath: S.breath })
+};
+</script>
+</body>
+</html>
