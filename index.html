@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ SCHÄFER · Deutungssystem · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;color:#c8d8e8;
+    font-family:Consolas,monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:52px 1fr 28px}
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 16px;gap:14px;
+    font-size:11px;letter-spacing:2px}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:10px;font-size:10px;color:#5a7288}
+  .bar{width:70px;height:4px;background:#0a1420;border-radius:2px;
+    overflow:hidden;margin-top:3px}
+  .bar i{display:block;height:100%}
+  .stat{display:flex;flex-direction:column;align-items:center}
+  .stat .k{font-size:8px;color:#5a7288;letter-spacing:1px}
+  .stat .v{font-size:11px;font-weight:bold;margin-top:2px}
+  .mana .v{color:#ff66c8}
+  .aura .v{color:#f0d080}
+  .zen .v{color:#8cf0d0}
+  .co2 .v{color:#ff5a7a}
+  .o2 .v{color:#39ff88}
+  #main{position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 16px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+  .ctr{position:absolute;top:14px;right:14px;display:flex;
+    gap:4px;z-index:10}
+  .ctr button{background:#0a101e;color:#5a7288;border:1px solid #1a2a3a;
+    padding:6px 12px;font-family:inherit;font-size:10px;letter-spacing:1px;
+    cursor:pointer;border-radius:3px;transition:.15s}
+  .ctr button:hover{color:#f0d080;border-color:#f0d080}
+  .ctr button.on{background:#1a3a2a;border-color:#39ff88;color:#39ff88}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <span>◈ <b>SCHÄFER</b> · Deutungssystem · iki1uc</span>
+  <span class="right">
+    <div class="stat mana"><span class="k">MANA</span><span class="v" id="vMana">0</span><div class="bar"><i id="bMana" style="background:#ff66c8"></i></div></div>
+    <div class="stat aura"><span class="k">AURA</span><span class="v" id="vAura">0</span><div class="bar"><i id="bAura" style="background:#f0d080"></i></div></div>
+    <div class="stat zen"><span class="k">ZEN</span><span class="v" id="vZen">0</span><div class="bar"><i id="bZen" style="background:#8cf0d0"></i></div></div>
+    <div class="stat co2"><span class="k">CO₂</span><span class="v" id="vCO2">0</span><div class="bar"><i id="bCO2" style="background:#ff5a7a"></i></div></div>
+    <div class="stat o2"><span class="k">O₂</span><span class="v" id="vO2">0</span><div class="bar"><i id="bO2" style="background:#39ff88"></i></div></div>
+  </span>
+</div>
+
+<div id="main">
+  <canvas id="c"></canvas>
+  <div class="ctr">
+    <button id="btnCity" class="on">CITY</button>
+    <button id="btnUncity">UNCITY</button>
+    <button id="btnReset">⟲</button>
+  </div>
+</div>
+
+<div id="bottom">
+  <span>◈ 27×27 · 81 Läufer · Schäfer führt</span>
+  <span>Move ↔ Unmove · Leben ↔ Unleben</span>
+  <span style="margin-left:auto" id="state">HÖLLE → PARADIES</span>
+</div>
+
+<script>
+"use strict";
+
+/* ─── Konstanten ─────────────────────────────────── */
+const N = 27;              // Grid-Größe
+const LEMMINGS = 81;       // Läufer
+const MAXLVL = 9;
+
+/* ─── Zustand ────────────────────────────────────── */
+const S = {
+  grid: new Array(N*N).fill(0),   // Zell-Level 0–9
+  lemming: [],
+  tick: 0,
+  mode: "city",                    // city | uncity
+  co2: 100,
+  o2: 0,
+  mana: 50,
+  aura: 50,
+  zen: 50
+};
+
+/* ─── Läufer erzeugen ────────────────────────────── */
+for (let i = 0; i < LEMMINGS; i++) {
+  S.lemming.push({
+    x: Math.floor(Math.random()*N),
+    y: Math.floor(Math.random()*N),
+    dx: Math.random() > 0.5 ? 1 : -1,
+    dy: Math.random() > 0.5 ? 1 : -1,
+    step: 0,
+    color: `hsl(${(i*4)%360},80%,60%)`
+  });
+}
+
+/* ─── Canvas ─────────────────────────────────────── */
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let W, H, CELL;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  CELL = Math.min(W, H) / N;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* ─── Logik-Update ───────────────────────────────── */
+function stepLemmings() {
+  S.tick++;
+
+  for (const L of S.lemming) {
+    L.step++;
+    // Bewegung im Schäfer-Takt (langsamer, würde er mehr werden)
+    if (L.step % 6 === 0) {
+      // Richtung mit Drift
+      if (Math.random() < 0.15) L.dx = -L.dx;
+      if (Math.random() < 0.15) L.dy = -L.dy;
+
+      L.x += L.dx;
+      L.y += L.dy;
+
+      // Wand = umkehren
+      if (L.x < 0) { L.x = 0; L.dx = 1; }
+      if (L.x >= N) { L.x = N-1; L.dx = -1; }
+      if (L.y < 0) { L.y = 0; L.dy = 1; }
+      if (L.y >= N) { L.y = N-1; L.dy = -1; }
+
+      // Zelle entwickeln
+      const idx = L.y * N + L.x;
+      if (S.grid[idx] < MAXLVL) S.grid[idx]++;
+      else {
+        // Alle 9 voll → zurücksetzen (Stadt atmet)
+        if (Math.random() < 0.3) S.grid[idx] = Math.max(0, S.grid[idx]-2);
+      }
+    }
+  }
+
+  // Globale Werte berechnen
+  const total = S.grid.reduce((a,b) => a+b, 0);
+  const avg = total / (N*N);
+
+  S.mana = Math.min(100, Math.round(avg * 20));
+  S.aura = Math.min(100, Math.round(avg * 15));
+  S.zen  = Math.min(100, Math.round(100 - avg * 12));
+
+  // CO2 fällt, O2 steigt bei Wachstum
+  S.co2 = Math.max(0, 100 - Math.round(avg * 15));
+  S.o2  = Math.min(100, Math.round(avg * 15));
+
+  updateUI();
+}
+
+/* ─── UI Update ──────────────────────────────────── */
+function updateUI() {
+  document.getElementById("vMana").textContent = S.mana;
+  document.getElementById("vAura").textContent = S.aura;
+  document.getElementById("vZen").textContent  = S.zen;
+  document.getElementById("vCO2").textContent  = S.co2;
+  document.getElementById("vO2").textContent   = S.o2;
+
+  document.getElementById("bMana").style.width = S.mana + "%";
+  document.getElementById("bAura").style.width = S.aura + "%";
+  document.getElementById("bZen").style.width  = S.zen  + "%";
+  document.getElementById("bCO2").style.width  = S.co2  + "%";
+  document.getElementById("bO2").style.width   = S.o2   + "%";
+
+  const s = document.getElementById("state");
+  const level = S.o2 / 100;
+  if (level > 0.7)      { s.textContent = "◈ PARADIES"; s.style.color = "#f0d080"; }
+  else if (level > 0.4) { s.textContent = "◈ ÜBERGANG";  s.style.color = "#8cf0d0"; }
+  else if (level > 0.15){ s.textContent = "◈ ERWACHEN";  s.style.color = "#5cf0ff"; }
+  else                  { s.textContent = "◈ HÖLLE";     s.style.color = "#ff5a7a"; }
+}
+
+/* ─── Zeichnen ───────────────────────────────────── */
+function draw() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+
+  const offX = (W - N*CELL) / 2;
+  const offY = (H - N*CELL) / 2;
+
+  // Zellen
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const lvl = S.grid[y*N + x];
+      const intensity = lvl / MAXLVL;
+
+      let color;
+      if (S.mode === "city") {
+        // Hölle → Paradies
+        const r = Math.round(60 + 195 * intensity);
+        const g = Math.round(20 + 140 * intensity);
+        const b = Math.round(10 + 60 * intensity);
+        color = `rgba(${r},${g},${b},${0.15 + intensity*0.7})`;
+      } else {
+        // Uncity: dunkel, kühl
+        const g = Math.round(40 + 80 * (1-intensity));
+        const b = Math.round(80 + 120 * intensity);
+        color = `rgba(${20},${g},${b},${0.15 + intensity*0.5})`;
+      }
+
+      ctx.fillStyle = color;
+      ctx.fillRect(offX + x*CELL, offY + y*CELL, CELL-0.5, CELL-0.5);
+
+      // Kontur bei hoher Stufe
+      if (lvl > 5) {
+        ctx.strokeStyle = `rgba(240,208,128,${(lvl-5)/4*0.6})`;
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(offX + x*CELL + 1, offY + y*CELL + 1, CELL-3, CELL-3);
+      }
+    }
+  }
+
+  // Läufer
+  for (const L of S.lemming) {
+    const px = offX + L.x*CELL + CELL/2;
+    const py = offY + L.y*CELL + CELL/2;
+
+    ctx.fillStyle = L.color;
+    ctx.shadowColor = L.color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(px, py, CELL * 0.25, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Aura-Overlay
+  const overlayStrength = (S.o2 / 100) * 0.08;
+  if (overlayStrength > 0.01) {
+    const grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.6);
+    grad.addColorStop(0, `rgba(240,208,128,${overlayStrength})`);
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+/* ─── Loop ───────────────────────────────────────── */
+setInterval(stepLemmings, 40);
+draw();
+
+/* ─── Controls ───────────────────────────────────── */
+document.getElementById("btnCity").addEventListener("click", () => {
+  S.mode = "city";
+  document.getElementById("btnCity").classList.add("on");
+  document.getElementById("btnUncity").classList.remove("on");
+});
+document.getElementById("btnUncity").addEventListener("click", () => {
+  S.mode = "uncity";
+  document.getElementById("btnUncity").classList.add("on");
+  document.getElementById("btnCity").classList.remove("on");
+});
+document.getElementById("btnReset").addEventListener("click", () => {
+  S.grid.fill(0);
+  S.tick = 0;
+  S.co2 = 100;
+  S.o2 = 0;
+  for (const L of S.lemming) {
+    L.x = Math.floor(Math.random()*N);
+    L.y = Math.floor(Math.random()*N);
+  }
+});
+
+/* Public */
+window.SCHÄFER = window.SCHAFER = {
+  state: () => ({ ...S, gridSize: N, lemmings: S.lemming.length }),
+  reset: () => document.getElementById("btnReset").click()
+};
+
+updateUI();
+</script>
+</body>
+</html>
