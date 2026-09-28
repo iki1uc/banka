@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ DEUTUNGSRAUM · übersetzte Dekade · iki1uc</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#02060a;color:#c8d8e8;
+    font-family:Consolas,monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:34px 1fr 26px}
+
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:14px;
+    font-size:10px;color:#5a7288}
+
+  #main{position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+
+  /* Decade-Zeitstrahl unten */
+  #decade{
+    position:absolute;bottom:14px;left:50%;
+    transform:translateX(-50%);
+    display:flex;gap:3px;
+    background:rgba(2,6,10,.7);
+    padding:6px 8px;border-radius:6px;
+    border:1px solid #1a2a3a;
+    backdrop-filter:blur(8px)
+  }
+  .y{
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    background:#0a101e;color:#5a7288;
+    border:1px solid #1a2a3a;border-radius:3px;
+    font-size:10px;font-weight:bold;
+    cursor:pointer;transition:.15s;
+    font-family:inherit
+  }
+  .y:hover{border-color:#5cf0ff;color:#5cf0ff}
+  .y.on{background:#1a3a2a;border-color:#0f0;color:#0f0;
+    box-shadow:0 0 10px rgba(0,255,0,.3)}
+  .y.past{background:#0a101e;border-color:#2a4a3a;color:#7a9a8a}
+
+  /* Übersetzung oben */
+  #translation{
+    position:absolute;top:14px;left:50%;
+    transform:translateX(-50%);
+    text-align:center;pointer-events:none;
+    min-width:420px;max-width:80%
+  }
+  #translation .mode{
+    font-size:10px;letter-spacing:4px;
+    color:#5a7288;text-transform:uppercase;margin-bottom:3px
+  }
+  #translation .zeile{
+    font-size:14px;letter-spacing:2px;
+    color:#f0d080;text-shadow:0 0 12px rgba(240,208,128,.4)
+  }
+  #translation .unter{
+    font-size:10px;letter-spacing:1.5px;
+    color:#5a7288;margin-top:3px
+  }
+
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+  #bottom .hint{margin-left:auto;color:#5cf0ff}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <span>◈ <b>DEUTUNGSRAUM</b> · übersetzte Dekade</span>
+  <span class="right">
+    <span>JAHR <b id="tJahr">1</b>/10</span>
+    <span>MODUS <b id="tModus">WUNDER</b></span>
+    <span>21 · 21 · 42</span>
+  </span>
+</div>
+
+<div id="main">
+  <canvas id="c"></canvas>
+
+  <div id="translation">
+    <div class="mode" id="dMode">DEUTUNG · WUNDER</div>
+    <div class="zeile" id="dZeile">Was war — erscheint wieder.</div>
+    <div class="unter" id="dUnter">21 gibt · 21 nimmt · 42 hält</div>
+  </div>
+
+  <div id="decade"></div>
+</div>
+
+<div id="bottom">
+  <span>◈ Dekade = 10 Jahre · 4 Deutungen pro Jahr</span>
+  <span>20 Deutungen · 1 Kern</span>
+  <span class="hint">jahr wählen · klick = weiter</span>
+</div>
+
+<script>
+"use strict";
+
+/* ═══════════════════════════════════════════════════════
+   DEUTUNGSRAUM · übersetzte Dekade
+   ═══════════════════════════════════════════════════════ */
+
+const S = {
+  tick: 0,
+  breath: 0,
+  jahr: 0,       // 0..9
+  deutung: 0,    // 0..3  · welche der 4 Sichten
+  autoplay: true,
+  letzterSprung: 0
+};
+
+/* ─── Die 4 Deutungen ─────────────────────────────────── */
+const DEUTUNGEN = [
+  {
+    key:"wunder",
+    name:"WUNDER",
+    farbe:"#f0d080",
+    satz:   (j) => `Jahr ${j+1} — etwas erscheint, ohne Grund.`,
+    unter:  "21 gibt · 21 nimmt · 42 hält",
+    form:   "wunder"
+  },
+  {
+    key:"wetter",
+    name:"WETTER",
+    farbe:"#5fc8ff",
+    satz:   (j) => `Jahr ${j+1} — Luft bewegt, keiner schiebt.`,
+    unter:  "21 gibt · 21 nimmt · 42 hält",
+    form:   "wetter"
+  },
+  {
+    key:"soccer",
+    name:"SOCCER",
+    farbe:"#39ff88",
+    satz:   (j) => `Jahr ${j+1} — zwei geben, einer trifft.`,
+    unter:  "21 gibt · 21 nimmt · 42 hält",
+    form:   "soccer"
+  },
+  {
+    key:"schach",
+    name:"SCHACH",
+    farbe:"#ff8a2a",
+    satz:   (j) => `Jahr ${j+1} — einer zieht, alle folgen.`,
+    unter:  "21 gibt · 21 nimmt · 42 hält",
+    form:   "schach"
+  }
+];
+
+/* ─── Decade-Auswahl ─────────────────────────────────── */
+const decade = document.getElementById("decade");
+for (let i = 0; i < 10; i++) {
+  const b = document.createElement("button");
+  b.className = "y";
+  b.dataset.j = i;
+  b.textContent = i + 1;
+  b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    S.jahr = i;
+    S.autoplay = false;
+    updateUI();
+  });
+  decade.appendChild(b);
+}
+
+/* ─── UI Update ─────────────────────────────────────── */
+function updateUI() {
+  const d = DEUTUNGEN[S.deutung];
+  document.getElementById("dMode").textContent = "DEUTUNG · " + d.name;
+  document.getElementById("dZeile").textContent = d.satz(S.jahr);
+  document.getElementById("dZeile").style.color = d.farbe;
+  document.getElementById("dUnter").textContent = d.unter;
+  document.getElementById("tJahr").textContent = (S.jahr + 1);
+  document.getElementById("tModus").textContent = d.name;
+
+  // Knöpfe
+  document.querySelectorAll(".y").forEach((b, i) => {
+    b.classList.toggle("on", i === S.jahr);
+    b.classList.toggle("past", i < S.jahr);
+  });
+}
+
+/* ─── Automatischer Sprung: jedes Jahr durch alle 4 Deutungen ──── */
+function autoTick(now) {
+  if (!S.autoplay) return;
+  // alle 3s: nächste Deutung · nach 4 Deutungen: nächstes Jahr
+  if (now - S.letzterSprung > 3000) {
+    S.letzterSprung = now;
+    S.deutung++;
+    if (S.deutung >= 4) {
+      S.deutung = 0;
+      S.jahr = (S.jahr + 1) % 10;
+    }
+    updateUI();
+  }
+}
+
+/* ─── Canvas ─────────────────────────────────────────── */
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+let W, H, cx, cy, R;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + "px"; cv.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2; cy = H / 2;
+  R = Math.min(W, H) * 0.30;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* ─── Zeichnen ───────────────────────────────────────── */
+function draw(now) {
+  const t = S.tick;
+  const d = DEUTUNGEN[S.deutung];
+
+  ctx.fillStyle = "rgba(2,6,10,0.15)";
+  ctx.fillRect(0, 0, W, H);
+
+  S.breath = 0.5 + Math.sin(t * 0.03) * 0.5;
+
+  // ============================================
+  // RAUM: sanfte Ringe, immer da
+  // ============================================
+  const raum = R * 1.4;
+  ctx.strokeStyle = d.farbe + "15";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, raum, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = d.farbe + "08";
+  ctx.beginPath();
+  ctx.arc(cx, cy, raum * 1.25, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ============================================
+  // Decade-Spur: 10 Jahre als Punkte im Ring
+  // ============================================
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2 + t * 0.0006;
+    const r2 = raum;
+    const x = cx + Math.cos(a) * r2;
+    const y = cy + Math.sin(a) * r2;
+
+    const istAktiv = i === S.jahr;
+    const istVergangen = i < S.jahr;
+
+    const pulse = istAktiv ? 0.7 + Math.sin(t * 0.06) * 0.3 : 0.5;
+    const size = istAktiv ? 8 : istVergangen ? 4 : 3;
+    const alpha = istAktiv ? 1 : istVergangen ? 0.5 : 0.2;
+
+    ctx.fillStyle = d.farbe + Math.round(alpha * 255).toString(16).padStart(2,"0");
+    if (istAktiv) {
+      ctx.shadowColor = d.farbe;
+      ctx.shadowBlur = 15;
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, size * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Jahreszahl
+    ctx.font = istAktiv ? "bold 10px Consolas" : "9px Consolas";
+    ctx.fillStyle = d.farbe + Math.round(alpha * 200).toString(16).padStart(2,"0");
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(String(i + 1), x, y + size + 4);
+  }
+
+  // ============================================
+  // 4 DEUTUNGS-FORMEN — eine ist immer aktiv
+  // ============================================
+  zeichneDeutung(d, t, now);
+
+  // ============================================
+  // KERN: 21 · 21 · 42  — immer gleich
+  // ============================================
+  const cp = 0.6 + Math.sin(t * 0.05) * 0.4;
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90 + cp * 20);
+  grad.addColorStop(0, d.farbe + "cc");
+  grad.addColorStop(0.5, d.farbe + "33");
+  grad.addColorStop(1, d.farbe + "00");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 90 + cp * 20, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = "bold 36px Consolas";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = `rgba(255,255,255,${0.85 + cp * 0.15})`;
+  ctx.shadowColor = d.farbe;
+  ctx.shadowBlur = 20 * cp;
+  ctx.fillText("42", cx, cy + 1);
+  ctx.shadowBlur = 0;
+
+  ctx.font = "9px Consolas";
+  ctx.fillStyle = d.farbe + "99";
+  ctx.fillText("21 + 21", cx, cy + 26);
+
+  S.tick++;
+  autoTick(now);
+  requestAnimationFrame(draw);
+}
+
+/* ─── Die 4 Deutungs-Formen (nur die aktive wird gezeichnet) ── */
+function zeichneDeutung(d, t, now) {
+  const r = R * 0.65;
+
+  if (d.form === "wunder") {
+    // Zwei Kreise · Funken
+    ctx.strokeStyle = d.farbe + "55";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(cx - r*0.55, cy, r*0.35, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx + r*0.55, cy, r*0.35, 0, Math.PI*2);
+    ctx.stroke();
+
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + t * 0.02;
+      const dr = r * (0.55 + Math.sin(t * 0.05 + i) * 0.15);
+      const x = cx + Math.cos(a) * dr;
+      const y = cy + Math.sin(a) * dr;
+      ctx.fillStyle = d.farbe + "cc";
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  else if (d.form === "wetter") {
+    // Wellen
+    for (let w = 0; w < 3; w++) {
+      const y = cy + (w - 1) * 45;
+      const offset = t * 0.5 + w * 180;
+      ctx.strokeStyle = d.farbe + (w === 1 ? "88" : "44");
+      ctx.lineWidth = w === 1 ? 1.5 : 0.8;
+      ctx.beginPath();
+      for (let x = cx - r; x <= cx + r; x += 6) {
+        const wy = y + Math.sin((x + offset) * 0.03) * 8;
+        if (x === cx - r) ctx.moveTo(x, wy);
+        else ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+    }
+  }
+  else if (d.form === "soccer") {
+    // Zwei Spieler · pendelnder Ball
+    const p1 = { x: cx - r * 0.7, y: cy + r * 0.25 };
+    const p2 = { x: cx + r * 0.7, y: cy - r * 0.25 };
+    [p1, p2].forEach(p => {
+      ctx.strokeStyle = d.farbe + "88";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    const cyc = (t * 0.012) % 2;
+    const pp = cyc < 1 ? cyc : 2 - cyc;
+    const bx = p1.x + (p2.x - p1.x) * pp;
+    const by = p1.y + (p2.y - p1.y) * pp;
+
+    ctx.fillStyle = d.farbe;
+    ctx.shadowColor = d.farbe;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(bx, by, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  else if (d.form === "schach") {
+    // Kleines 6×6 Raster + wandernder Springer
+    const size = r * 1.2;
+    const cell = size / 6;
+    for (let rr = 0; rr < 6; rr++) {
+      for (let cc = 0; cc < 6; cc++) {
+        const x = cx - size/2 + cc * cell;
+        const y = cy - size/2 + rr * cell;
+        ctx.fillStyle = (rr + cc) % 2 === 0
+          ? d.farbe + "10"
+          : d.farbe + "04";
+        ctx.fillRect(x, y, cell, cell);
+      }
+    }
+
+    const spuren = [[3,3],[2,1],[1,3],[0,1],[1,2],[3,1],[4,3],[5,1]];
+    const idx = Math.floor((t * 0.008) % spuren.length);
+    const [rr, cc] = spuren[idx];
+    const px = cx - size/2 + cc * cell + cell/2;
+    const py = cy - size/2 + rr * cell + cell/2;
+
+    ctx.font = "20px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = d.farbe;
+    ctx.shadowColor = d.farbe;
+    ctx.shadowBlur = 15;
+    ctx.fillText("♞", px, py);
+    ctx.shadowBlur = 0;
+  }
+}
+
+/* ─── Uhr (nur Topbar) ───────────────────────────────── */
+draw(performance.now());
+
+/* ─── Keyboard ───────────────────────────────────────── */
+document.addEventListener("keydown", (e) => {
+  if (e.key === " ") {
+    e.preventDefault();
+    S.autoplay = !S.autoplay;
+  }
+  if (e.key === "ArrowRight") {
+    S.deutung = (S.deutung + 1) % 4;
+    if (S.deutung === 0) S.jahr = (S.jahr + 1) % 10;
+    updateUI();
+  }
+  if (e.key === "ArrowLeft") {
+    S.deutung = (S.deutung + 3) % 4;
+    if (S.deutung === 3) S.jahr = (S.jahr + 9) % 10;
+    updateUI();
+  }
+});
+
+/* ─── Start ─────────────────────────────────────────── */
+updateUI();
+
+/* Public */
+window.DEUTUNG = {
+  jahr: (i) => { S.jahr = Math.max(0, Math.min(9, i)); S.autoplay = false; updateUI(); },
+  modus: (i) => { S.deutung = i % 4; updateUI(); },
+  autoplay: (on) => { S.autoplay = !!on; },
+  state: () => ({ jahr: S.jahr, deutung: S.deutung, autoplay: S.autoplay })
+};
+</script>
+</body>
+</html>
