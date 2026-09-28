@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ HÄNDLER · index · UNO</title>
+<style>
+  :root{
+    --bg:#04070e; --bg2:#0a101e; --bg3:#101828;
+    --fg:#c8d8e8; --dim:#5a7288; --dim2:#2a3644;
+    --green:#7ce0a8; --cyan:#5fc8ff; --gold:#ffcc44;
+    --violet:#b388ff; --red:#ff5a7a; --amber:#ff8a2a;
+    --line:rgba(140,180,220,0.09)
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000}
+  body{
+    color:var(--fg);font-family:'Consolas','Courier New',monospace;
+    font-size:13px;overflow:hidden
+  }
+  #desk{height:100vh;display:grid;
+    grid-template-rows:32px 1fr 24px;background:var(--bg)}
+
+  /* TOPBAR */
+  #top{background:linear-gradient(180deg,#0a101e,#04070e);
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px}
+  #top .logo{color:var(--gold);font-weight:bold;letter-spacing:3px}
+  #top .logo b{color:var(--green)}
+  #top .right{margin-left:auto;display:flex;gap:14px;font-size:10px;color:var(--dim)}
+  #top .right b{color:var(--cyan)}
+
+  /* MAIN */
+  #main{display:grid;grid-template-columns:1fr 1fr 300px;
+    gap:1px;background:#000;overflow:hidden;min-height:0}
+
+  .col{background:var(--bg2);display:flex;flex-direction:column;
+    overflow:hidden;min-height:0}
+  .col h2{background:var(--bg3);color:var(--cyan);
+    font-size:11px;padding:6px 12px;letter-spacing:2px;
+    text-transform:uppercase;font-weight:normal;
+    border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center}
+  .col h2 b{color:var(--gold);font-weight:normal}
+  .body{flex:1;overflow-y:auto;padding:12px;font-size:12px;line-height:1.7}
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:var(--line)}
+
+  /* Karten */
+  .card{background:var(--bg3);border:1px solid var(--line);
+    border-radius:4px;padding:10px 12px;margin-bottom:8px}
+  .card .lbl{color:var(--dim);font-size:9px;letter-spacing:1.5px;
+    text-transform:uppercase;margin-bottom:4px}
+  .card .val{color:var(--fg);font-size:14px}
+  .card .val.gold{color:var(--gold)}
+  .card .val.green{color:var(--green)}
+  .card .val.violet{color:var(--violet)}
+
+  /* Eingabe */
+  .row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+  .row label{color:var(--dim);font-size:10px;min-width:72px;
+    letter-spacing:1px;text-transform:uppercase}
+  .row input,.row select{
+    flex:1;background:#000;color:var(--fg);
+    border:1px solid var(--line);border-radius:3px;
+    padding:6px 10px;font-family:inherit;font-size:12px;
+    outline:none;transition:.15s
+  }
+  .row input:focus,.row select:focus{border-color:var(--cyan)}
+
+  /* Buttons */
+  .btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .btn{flex:1;min-width:80px;background:var(--bg3);
+    color:var(--fg);border:1px solid var(--line);
+    padding:8px 10px;border-radius:3px;
+    font-family:inherit;font-size:10px;letter-spacing:1.5px;
+    cursor:pointer;text-transform:uppercase;transition:.15s}
+  .btn:hover{border-color:var(--green);color:var(--green);
+    background:rgba(124,224,168,0.08)}
+  .btn.primary{border-color:rgba(124,224,168,0.4);color:var(--green)}
+  .btn.gold{border-color:rgba(255,204,68,0.4);color:var(--gold)}
+  .btn.violet{border-color:rgba(179,136,255,0.4);color:var(--violet)}
+  .btn.danger{border-color:rgba(255,90,122,0.4);color:var(--red)}
+  .btn:disabled{opacity:0.4;cursor:not-allowed}
+
+  /* Prüfungen */
+  .check{display:flex;gap:10px;padding:6px 8px;
+    border-left:2px solid var(--line);background:var(--bg3);
+    margin-bottom:4px;border-radius:2px;
+    font-size:11px;align-items:center}
+  .check.on{border-left-color:var(--green)}
+  .check.off{border-left-color:var(--red)}
+  .check .dot{width:8px;height:8px;border-radius:50%;
+    background:var(--dim);flex-shrink:0}
+  .check.on .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .check.off .dot{background:var(--red)}
+  .check .k{color:var(--dim);min-width:100px;font-size:9.5px;
+    letter-spacing:1px;text-transform:uppercase}
+  .check .v{flex:1;color:var(--fg)}
+
+  /* Neun Ja */
+  .nine{display:grid;grid-template-columns:repeat(9,1fr);
+    gap:3px;margin-top:8px}
+  .j{background:var(--bg3);border:1px solid var(--line);
+    border-radius:3px;padding:6px 2px;text-align:center;
+    cursor:pointer;transition:.15s;color:var(--dim);font-size:9px}
+  .j:hover{border-color:var(--green)}
+  .j.on{background:rgba(124,224,168,0.15);
+    border-color:var(--green);color:var(--green)}
+  .j .n{display:block;font-size:14px;font-weight:bold;line-height:1}
+
+  /* Log */
+  #log{flex:1;padding:8px 12px;overflow-y:auto;
+    font-size:10px;line-height:1.6;color:var(--dim);
+    background:#02040a;border-top:1px solid var(--line)}
+  #log::-webkit-scrollbar{width:5px}
+  #log::-webkit-scrollbar-thumb{background:var(--line)}
+  #log .ln{padding:1px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+  #log .t{color:var(--dim2);margin-right:6px}
+  #log .ok{color:var(--green)}
+  #log .warn{color:var(--gold)}
+  #log .err{color:var(--red)}
+  #log .info{color:var(--cyan)}
+  #log .gold{color:var(--gold)}
+
+  /* Rechts: Status */
+  #status{background:var(--bg2);border-left:1px solid var(--line);
+    display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  #status h2{background:var(--bg3);color:var(--gold);
+    font-size:11px;padding:6px 12px;letter-spacing:2px;
+    text-transform:uppercase;font-weight:normal;
+    border-bottom:1px solid var(--line)}
+  #statusBody{flex:1;padding:12px;overflow-y:auto}
+  .srow{display:flex;justify-content:space-between;
+    padding:4px 0;border-bottom:1px dashed var(--line);
+    font-size:10.5px}
+  .srow .k{color:var(--dim)}
+  .srow .v{color:var(--fg);font-weight:bold}
+  .srow .v.ok{color:var(--green)}
+  .srow .v.warn{color:var(--gold)}
+  .srow .v.err{color:var(--red)}
+
+  #bottom{background:var(--bg3);color:var(--dim);
+    font-size:10px;padding:0 14px;
+    display:flex;align-items:center;gap:14px;
+    border-top:1px solid var(--line);letter-spacing:1px}
+  #bottom .ok{color:var(--green)}
+  #bottom .warn{color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="desk">
+
+  <div id="top">
+    <span class="logo">◈ HÄNDLER <b>::UNO</b></span>
+    <span style="color:var(--dim);font-size:10px">/ > index.html · fair use · 1:1 · 2+2+9</span>
+    <div class="right">
+      <span>SEITE <b id="tSide">—</b></span>
+      <span>PARTNER <b id="tPartner">—</b></span>
+      <span>JA <b id="tJa">0/9</b></span>
+      <span id="tClock">--:--:--</span>
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- LINKS: Händler -->
+    <div class="col">
+      <h2><span>◈ HÄNDLER</span><b id="haendlerState">neu</b></h2>
+      <div class="body">
+        <div class="card">
+          <div class="lbl">Name</div>
+          <div class="val gold" id="haendlerName">— nicht gesetzt —</div>
+        </div>
+
+        <div class="row">
+          <label>Name</label>
+          <input id="inHaendler" placeholder="dein händler-name">
+        </div>
+
+        <div class="row">
+          <label>Kosten</label>
+          <select id="selKosten">
+            <option value="frei">frei · kostenlos</option>
+            <option value="1zu1">1:1 · gleicher preis</option>
+            <option value="unklar">unklar · wird geprüft</option>
+          </select>
+        </div>
+
+        <div class="btnrow">
+          <button class="btn primary" id="btnSetHaendler">▸ händler setzen</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="lbl" style="color:var(--dim);font-size:9px;
+            letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">
+            ◈ Händler-Prüfungen
+          </div>
+
+          <div class="check" id="ck1">
+            <span class="dot"></span>
+            <span class="k">angemeldet</span>
+            <span class="v" id="ck1v">— name fehlt —</span>
+          </div>
+
+          <div class="check" id="ck2">
+            <span class="dot"></span>
+            <span class="k">kosten-offen</span>
+            <span class="v" id="ck2v">— kosten nicht geklärt —</span>
+          </div>
+
+          <div class="check" id="ck3">
+            <span class="dot"></span>
+            <span class="k">3× bestätigt</span>
+            <span class="v" id="ck3v">— bestätigung fehlt —</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MITTE: Bauer -->
+    <div class="col">
+      <h2><span>◈ BAUER</span><b id="bauerState">wartet</b></h2>
+      <div class="body">
+        <div class="card">
+          <div class="lbl">Name</div>
+          <div class="val green" id="bauerName">— nicht gesetzt —</div>
+        </div>
+
+        <div class="row">
+          <label>Name</label>
+          <input id="inBauer" placeholder="dein bauer-name">
+        </div>
+
+        <div class="row">
+          <label>Fair Use</label>
+          <select id="selFair">
+            <option value="nein">nicht geprüft</option>
+            <option value="ja">geprüft · erfüllt</option>
+            <option value="teil">teilweise</option>
+          </select>
+        </div>
+
+        <div class="btnrow">
+          <button class="btn" id="btnSetBauer">▸ bauer setzen</button>
+          <button class="btn violet" id="btnPruef">◇ 3er-prüfung</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="lbl" style="color:var(--dim);font-size:9px;
+            letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">
+            ◈ Fair Use (deine Regeln)
+          </div>
+
+          <div class="check" id="fk1">
+            <span class="dot"></span>
+            <span class="k">pestizid</span>
+            <span class="v" id="fk1v">max 10% · nur vorne</span>
+          </div>
+          <div class="check" id="fk2">
+            <span class="dot"></span>
+            <span class="k">bio</span>
+            <span class="v" id="fk2v">3× · jedes mal 3×</span>
+          </div>
+          <div class="check" id="fk3">
+            <span class="dot"></span>
+            <span class="k">letzte 6 mon.</span>
+            <span class="v" id="fk3v">nichts</span>
+          </div>
+          <div class="check" id="fk4">
+            <span class="dot"></span>
+            <span class="k">wiederholung</span>
+            <span class="v" id="fk4v">kein Pflanze/Erde/Wasser-loop</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECHTS: Status + Vertrag -->
+    <div id="status">
+      <h2>◈ VERTRAG</h2>
+      <div id="statusBody">
+
+        <div class="srow"><span class="k">seite A</span><span class="v" id="sA">—</span></div>
+        <div class="srow"><span class="k">seite B</span><span class="v" id="sB">—</span></div>
+        <div class="srow"><span class="k">zeuge 1</span><span class="v" id="sZ1">—</span></div>
+        <div class="srow"><span class="k">zeuge 2</span><span class="v" id="sZ2">—</span></div>
+        <div class="srow"><span class="k">ergebnis</span><span class="v" id="sErg">—</span></div>
+
+        <div style="margin-top:14px">
+          <div class="lbl" style="color:var(--dim);font-size:9px;
+            letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">
+            ◈ 9× JA (Klick)
+          </div>
+          <div class="nine" id="nine"></div>
+        </div>
+
+        <div class="btnrow" style="margin-top:12px">
+          <button class="btn gold" id="btnVertrag">◆ vertrag schließen</button>
+          <button class="btn danger" id="btnReset">⟲ reset</button>
+        </div>
+
+        <div id="log" style="margin-top:12px;
+          border:1px solid var(--line);border-radius:3px;
+          max-height:200px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <span>◈ HÄNDLER · UNO-BAUER</span>
+    <span id="bState" class="warn">— warte auf eingabe —</span>
+    <span style="margin-left:auto">© iki1uc</span>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ─── STATE ─────────────────────────────────────────── */
+const S = {
+  haendler: { name:"", kosten:"", bestaetigt:0 },
+  bauer:    { name:"", fair:"" },
+  ja:       [false,false,false,false,false,false,false,false,false],
+  vertrag:  false,
+  logs:     []
+};
+
+/* ─── LOG ───────────────────────────────────────────── */
+const logEl = document.getElementById("log");
+function log(msg, cls="") {
+  const t = new Date().toLocaleTimeString("de-DE");
+  const d = document.createElement("div");
+  d.className = "ln";
+  d.innerHTML = `<span class="t">[${t}]</span><span class="${cls}">${msg}</span>`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  while (logEl.children.length > 80) logEl.removeChild(logEl.firstChild);
+  S.logs.push({ t, msg, cls });
+}
+
+/* ─── HÄNDLER SETZEN ────────────────────────────────── */
+document.getElementById("btnSetHaendler").addEventListener("click", () => {
+  const name = document.getElementById("inHaendler").value.trim();
+  const kosten = document.getElementById("selKosten").value;
+  if (!name) { log("⚠ händler-name fehlt", "err"); return; }
+
+  S.haendler.name = name;
+  S.haendler.kosten = kosten;
+
+  document.getElementById("haendlerName").textContent = name;
+  document.getElementById("haendlerState").textContent = "aktiv";
+  document.getElementById("tSide").textContent = name;
+
+  // Prüfungen
+  document.getElementById("ck1").className = "check on";
+  document.getElementById("ck1v").textContent = name + " · angemeldet";
+
+  if (kosten === "frei") {
+    document.getElementById("ck2").className = "check on";
+    document.getElementById("ck2v").textContent = "kostenlos · OK";
+  } else if (kosten === "1zu1") {
+    document.getElementById("ck2").className = "check on";
+    document.getElementById("ck2v").textContent = "1:1 · fair";
+  } else {
+    document.getElementById("ck2").className = "check off";
+    document.getElementById("ck2v").textContent = "unklar · wird geprüft";
+  }
+
+  log(`▸ händler: ${name} · kosten=${kosten}`, "info");
+  updateAll();
+});
+
+/* ─── BAUER SETZEN ──────────────────────────────────── */
+document.getElementById("btnSetBauer").addEventListener("click", () => {
+  const name = document.getElementById("inBauer").value.trim();
+  const fair = document.getElementById("selFair").value;
+  if (!name) { log("⚠ bauer-name fehlt", "err"); return; }
+
+  S.bauer.name = name;
+  S.bauer.fair = fair;
+
+  document.getElementById("bauerName").textContent = name;
+  document.getElementById("bauerState").textContent = fair === "ja" ? "fair use ok" : "offen";
+  document.getElementById("tPartner").textContent = name;
+
+  if (fair === "ja") {
+    ["fk1","fk2","fk3","fk4"].forEach(id => {
+      document.getElementById(id).className = "check on";
+    });
+    log(`▸ bauer: ${name} · fair use erfüllt`, "ok");
+  } else if (fair === "teil") {
+    document.getElementById("fk1").className = "check on";
+    document.getElementById("fk2").className = "check warn";
+    document.getElementById("fk3").className = "check off";
+    document.getElementById("fk4").className = "check off";
+    log(`▸ bauer: ${name} · teilweise`, "warn");
+  } else {
+    log(`▸ bauer: ${name} · nicht geprüft`, "warn");
+  }
+
+  updateAll();
+});
+
+/* ─── 3ER-PRÜFUNG ───────────────────────────────────── */
+document.getElementById("btnPruef").addEventListener("click", () => {
+  if (!S.bauer.name) { log("⚠ erst bauer setzen", "err"); return; }
+  const k = Math.random() > 0.3;
+  if (k) {
+    ["fk1","fk2","fk3","fk4"].forEach(id => {
+      document.getElementById(id).className = "check on";
+    });
+    document.getElementById("selFair").value = "ja";
+    S.bauer.fair = "ja";
+    document.getElementById("bauerState").textContent = "fair use ok";
+    log("◇ 3er-prüfung: erfüllt · alle 4 punkte OK", "ok");
+  } else {
+    document.getElementById("fk3").className = "check off";
+    document.getElementById("fk4").className = "check off";
+    document.getElementById("selFair").value = "teil";
+    S.bauer.fair = "teil";
+    log("◇ 3er-prüfung: teilweise · letzte 6 mon. nicht OK", "warn");
+  }
+  updateAll();
+});
+
+/* ─── 9× JA ─────────────────────────────────────────── */
+function buildNine() {
+  const el = document.getElementById("nine");
+  el.innerHTML = "";
+  const labels = ["weiß","weiß","weiß","gibt","gibt","gibt","kostet","kostet","kostet"];
+  for (let i = 0; i < 9; i++) {
+    const d = document.createElement("div");
+    d.className = "j" + (S.ja[i] ? " on" : "");
+    d.dataset.i = i;
+    d.innerHTML = `<span class="n">${i+1}</span>${labels[i]}`;
+    d.onclick = () => toggleJa(i);
+    el.appendChild(d);
+  }
+}
+function toggleJa(i) {
+  S.ja[i] = !S.ja[i];
+  document.querySelectorAll("#nine .j").forEach((el, idx) => {
+    el.classList.toggle("on", S.ja[idx]);
+  });
+  const c = S.ja.filter(Boolean).length;
+  document.getElementById("tJa").textContent = c + "/9";
+  if (c === 9) log("◈ 9× ja erreicht · vertrag bereit", "gold");
+  updateAll();
+}
+
+/* ─── VERTRAG ───────────────────────────────────────── */
+document.getElementById("btnVertrag").addEventListener("click", () => {
+  const jaCount = S.ja.filter(Boolean).length;
+
+  if (!S.haendler.name) { log("✗ händler fehlt", "err"); return; }
+  if (!S.bauer.name)    { log("✗ bauer fehlt", "err"); return; }
+  if (S.bauer.fair !== "ja") { log("✗ fair use nicht erfüllt", "err"); return; }
+  if (jaCount < 9) { log(`✗ nur ${jaCount}/9 ja · 9 nötig`, "err"); return; }
+
+  S.vertrag = true;
+  document.getElementById("sA").textContent = S.haendler.name;
+  document.getElementById("sB").textContent = S.bauer.name;
+  document.getElementById("sZ1").textContent = "zeuge 1 · bestätigt";
+  document.getElementById("sZ2").textContent = "zeuge 2 · bestätigt";
+  document.getElementById("sErg").textContent = "GÜLTIG · 1:1";
+  document.getElementById("sErg").className = "v ok";
+  document.getElementById("bState").textContent = "◈ VERTRAG GÜLTIG";
+  document.getElementById("bState").className = "ok";
+
+  log("◈ VERTRAG GESCHLOSSEN", "gold");
+  log(`  ${S.haendler.name} (händler) ↔ ${S.bauer.name} (bauer)`, "ok");
+  log(`  kosten: ${S.haendler.kosten} · fair use: ja · 9× ja`, "ok");
+  log("  1:1 · kein minus · kein aufschlag", "gold");
+});
+
+/* ─── RESET ─────────────────────────────────────────── */
+document.getElementById("btnReset").addEventListener("click", () => {
+  S.haendler = { name:"", kosten:"", bestaetigt:0 };
+  S.bauer = { name:"", fair:"" };
+  S.ja = new Array(9).fill(false);
+  S.vertrag = false;
+
+  document.getElementById("inHaendler").value = "";
+  document.getElementById("inBauer").value = "";
+  document.getElementById("haendlerName").textContent = "— nicht gesetzt —";
+  document.getElementById("bauerName").textContent = "— nicht gesetzt —";
+  document.getElementById("haendlerState").textContent = "neu";
+  document.getElementById("bauerState").textContent = "wartet";
+  document.getElementById("tSide").textContent = "—";
+  document.getElementById("tPartner").textContent = "—";
+  document.getElementById("tJa").textContent = "0/9";
+
+  ["ck1","ck2","ck3"].forEach(id => {
+    document.getElementById(id).className = "check";
+  });
+  ["fk1","fk2","fk3","fk4"].forEach(id => {
+    document.getElementById(id).className = "check";
+  });
+  document.getElementById("sA").textContent = "—";
+  document.getElementById("sB").textContent = "—";
+  document.getElementById("sZ1").textContent = "—";
+  document.getElementById("sZ2").textContent = "—";
+  document.getElementById("sErg").textContent = "—";
+  document.getElementById("sErg").className = "v";
+  document.getElementById("bState").textContent = "— warte auf eingabe —";
+  document.getElementById("bState").className = "warn";
+
+  buildNine();
+  log("⟲ reset · alles auf null", "warn");
+});
+
+/* ─── UPDATE ALL ────────────────────────────────────── */
+function updateAll() {
+  // Händler 3× bestätigt
+  const ja = S.ja.filter(Boolean).length;
+  if (ja >= 3 && S.haendler.name) {
+    document.getElementById("ck3").className = "check on";
+    document.getElementById("ck3v").textContent = ja + "× bestätigt";
+  } else if (ja > 0) {
+    document.getElementById("ck3").className = "check";
+    document.getElementById("ck3v").textContent = ja + "× (3 nötig)";
+  }
+}
+
+/* ─── CLOCK ─────────────────────────────────────────── */
+setInterval(() => {
+  document.getElementById("tClock").textContent =
+    new Date().toLocaleTimeString("de-DE");
+}, 1000);
+
+/* ─── INIT ──────────────────────────────────────────── */
+buildNine();
+log("◈ HÄNDLER · UNO-BAUER geladen", "ok");
+log("▸ händler setzen · bauer setzen · 3er-prüfung · 9× ja · vertrag", "info");
+log("▸ 1:1 · fair use · kein minus", "gold");
+
+window.HAENDLER = {
+  state: () => ({ ...S }),
+  log
+};
+</script>
+</body>
+</html>
