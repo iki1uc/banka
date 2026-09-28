@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>◈ INDEX · die 9 · Vector Ring</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#02060a;color:#c8d8e8;
+    font-family:Consolas,monospace;overflow:hidden}
+  body{display:grid;grid-template-rows:34px 1fr 26px}
+
+  #top{background:#0a101e;border-bottom:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:11px;letter-spacing:2px;gap:14px;z-index:10}
+  #top b{color:#f0d080}
+  #top .right{margin-left:auto;display:flex;gap:14px;
+    font-size:10px;color:#5a7288}
+
+  #main{position:relative;overflow:hidden}
+  #ring{display:block;width:100%;height:100%}
+  #frame{
+    position:absolute;inset:0;border:none;background:#000;
+    display:none;z-index:5
+  }
+  #frame.on{display:block}
+
+  #back{
+    position:absolute;top:14px;right:14px;z-index:15;
+    background:#1a0a12;color:#f0d080;border:1px solid #f0d080;
+    padding:6px 14px;border-radius:3px;font-family:inherit;
+    font-size:10px;letter-spacing:2px;cursor:pointer;
+    display:none
+  }
+  #back.on{display:block}
+
+  #bottom{background:#0c1828;border-top:1px solid #1a2a3a;
+    display:flex;align-items:center;padding:0 14px;
+    font-size:10px;color:#5a7288;letter-spacing:1px;gap:14px}
+  #bottom b{color:#f0d080}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <span>◈ <b>INDEX</b> · die 9 · Vector Ring</span>
+  <span class="right">
+    <span>STATIONEN <b id="tS">0/8</b></span>
+    <span>AKTIV <b id="tA">—</b></span>
+    <span id="tClock">--:--:--</span>
+  </span>
+</div>
+
+<div id="main">
+  <canvas id="ring"></canvas>
+  <iframe id="frame"></iframe>
+  <button id="back">↩ zurück zum ring</button>
+</div>
+
+<div id="bottom">
+  <span>◈ 8 Stationen · 1 Ring · 1 Mitte</span>
+  <span>Klick auf Punkt → Station öffnet</span>
+  <span style="margin-left:auto">© iki1uc</span>
+</div>
+
+<script>
+"use strict";
+
+/* ═══════════════════════════════════════════════════════
+   INDEX · die 9 · Vector Ring
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── Die 8 Stationen ──────────────────────────────── */
+const STATIONEN = [
+  { key:"energie",     label:"ENERGIE",     file:"energie.html",     farbe:"#f0d080" },
+  { key:"wetter",      label:"WETTER",      file:"wetter.html",      farbe:"#5fc8ff" },
+  { key:"markt",       label:"MARKT",       file:"markt.html",       farbe:"#39ff88" },
+  { key:"schaefer",    label:"SCHÄFER",     file:"schaefer.html",    farbe:"#ff8a2a" },
+  { key:"hinterband",  label:"HINTERBAND",  file:"hinterband.html",  farbe:"#b388ff" },
+  { key:"vereinbarung",label:"VEREINBARUNG",file:"vereinbarung.html",farbe:"#7ce0a8" },
+  { key:"kodex",       label:"KODEX",       file:"kodex.html",       farbe:"#ff88b0" },
+  { key:"bench",       label:"BENCH",       file:"bench.html",       farbe:"#5cf0ff" }
+];
+
+/* ─── Zustand ──────────────────────────────────────── */
+const S = {
+  tick:0, breath:0,
+  aktiv:-1,       // welcher Punkt grad offen ist
+  hover:-1
+};
+
+/* ─── Canvas Setup ─────────────────────────────────── */
+const cv = document.getElementById("ring");
+const ctx = cv.getContext("2d");
+let W, H, cx, cy, R;
+let punkte = [];   // {x,y,st}
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  const r = cv.parentElement.getBoundingClientRect();
+  W = r.width; H = r.height;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+"px"; cv.style.height = H+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx = W/2; cy = H/2;
+  R = Math.min(W,H) * 0.32;
+  berechnePunkte();
+}
+window.addEventListener("resize", resize);
+
+function berechnePunkte() {
+  punkte = STATIONEN.map((st, i) => {
+    const a = (i/8) * Math.PI*2 - Math.PI/2;
+    return { x: cx + Math.cos(a)*R, y: cy + Math.sin(a)*R, st, angle:a };
+  });
+}
+
+/* ─── Hover / Klick ───────────────────────────────── */
+cv.addEventListener("mousemove", (e) => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  S.hover = -1;
+  for (let i = 0; i < punkte.length; i++) {
+    const p = punkte[i];
+    if (Math.hypot(mx-p.x, my-p.y) < 26) { S.hover = i; break; }
+  }
+  cv.style.cursor = S.hover >= 0 ? "pointer" : "default";
+});
+
+cv.addEventListener("click", () => {
+  if (S.hover >= 0) oeffneStation(S.hover);
+});
+
+/* ─── Station öffnen ───────────────────────────────── */
+function oeffneStation(i) {
+  const st = STATIONEN[i];
+  S.aktiv = i;
+  document.getElementById("tA").textContent = st.label;
+
+  const frame = document.getElementById("frame");
+  frame.src = st.file;
+  frame.classList.add("on");
+  document.getElementById("back").classList.add("on");
+}
+
+function zurueck() {
+  S.aktiv = -1;
+  document.getElementById("tA").textContent = "—";
+  const frame = document.getElementById("frame");
+  frame.classList.remove("on");
+  frame.src = "about:blank";
+  document.getElementById("back").classList.remove("on");
+}
+
+document.getElementById("back").addEventListener("click", zurueck);
+
+/* ─── Zeichnen ─────────────────────────────────────── */
+function draw() {
+  const t = S.tick;
+
+  ctx.fillStyle = "rgba(2,6,10,0.18)";
+  ctx.fillRect(0, 0, W, H);
+
+  S.breath = 0.5 + Math.sin(t*0.03)*0.5;
+
+  /* Der Ring selbst */
+  const ringR = R * (1 + S.breath * 0.02);
+  ctx.strokeStyle = "rgba(240,208,128,0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringR, 0, Math.PI*2);
+  ctx.stroke();
+
+  // äußerer gestrichelter Ring
+  ctx.strokeStyle = "rgba(240,208,128,0.08)";
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringR*1.15, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* Linien von Mitte zu Punkten */
+  punkte.forEach((p, i) => {
+    const istHover = i === S.hover;
+    const istAktiv = i === S.aktiv;
+    const a = istHover || istAktiv ? 0.6 : 0.12;
+    ctx.strokeStyle = p.st.farbe + Math.round(a*255).toString(16).padStart(2,"0");
+    ctx.lineWidth = istHover || istAktiv ? 1.5 : 0.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  });
+
+  /* Mitte: 42 · der Kern */
+  const pulse = 0.6 + Math.sin(t*0.05)*0.4;
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,70+pulse*20);
+  grad.addColorStop(0, `rgba(240,208,128,${0.5+pulse*0.4})`);
+  grad.addColorStop(0.5, `rgba(240,208,128,${0.1+pulse*0.1})`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 70+pulse*20, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.font = "bold 36px Consolas";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = `rgba(255,255,255,${0.85+pulse*0.15})`;
+  ctx.shadowColor = "#f0d080";
+  ctx.shadowBlur = 25*pulse;
+  ctx.fillText("42", cx, cy+1);
+  ctx.shadowBlur = 0;
+
+  ctx.font = "9px Consolas";
+  ctx.fillStyle = "rgba(240,208,128,0.6)";
+  ctx.fillText("DIE 9", cx, cy+28);
+
+  /* Die 8 Punkte */
+  punkte.forEach((p, i) => {
+    const istHover = i === S.hover;
+    const istAktiv = i === S.aktiv;
+
+    const ph = t*0.03 + i*0.8;
+    const localPulse = 0.6 + Math.sin(ph)*0.4;
+
+    const size = istAktiv ? 20 : istHover ? 16 : 12;
+    const s = size + localPulse*2;
+
+    // Glow
+    ctx.shadowColor = p.st.farbe;
+    ctx.shadowBlur = (istAktiv?30:istHover?20:8) * localPulse;
+
+    ctx.fillStyle = istAktiv ? p.st.farbe : p.st.farbe + "cc";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, s, 0, Math.PI*2);
+    ctx.fill();
+
+    // Ring drumherum
+    ctx.strokeStyle = p.st.farbe;
+    ctx.lineWidth = istAktiv ? 2.5 : istHover ? 2 : 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, s+5, 0, Math.PI*2);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    // Label
+    const labelPos = {
+      x: p.x + (p.x - cx) * 0.35,
+      y: p.y + (p.y - cy) * 0.35
+    };
+    ctx.font = istAktiv ? "bold 10px Consolas" : "9px Consolas";
+    ctx.fillStyle = istAktiv ? "#fff" : p.st.farbe;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(p.st.label, labelPos.x, labelPos.y);
+  });
+
+  S.tick++;
+  requestAnimationFrame(draw);
+}
+
+/* ─── Uhr ──────────────────────────────────────────── */
+setInterval(() => {
+  document.getElementById("tClock").textContent =
+    new Date().toLocaleTimeString("de-DE");
+}, 1000);
+
+/* ─── Init ─────────────────────────────────────────── */
+resize();
+document.getElementById("tS").textContent = STATIONEN.length + "/8";
+draw();
+</script>
+</body>
+</html>
